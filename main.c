@@ -1,4 +1,4 @@
-
+/*This is the main test program*/
 #include "main.h"
 int main ( int argc, char *argv[] )
 {
