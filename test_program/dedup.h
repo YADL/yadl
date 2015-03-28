@@ -1,4 +1,3 @@
-/*Dedup.h file*/
 #include<stdio.h>
 #include<string.h>  
 #include<stdlib.h> 
@@ -33,10 +32,11 @@ int readcatalog(int fc);
 int searchpath(char out[],int filedes);
 int file_exist(char *filename);
 int write_to_stub(char buff[],size_t l,int filedes,int b_offset,int e_offset);
-char* get_hash(int  st1,int b_offset,int e_offset);
 int searchBlock(int filedes,int filedes1,int st1,int b_offset,int  e_offset);
 int getposition(int filedes,char* hash);
 char* getblock(int filedes1,int pos);
 int searchhashstub(int  st1,int b_offset,int e_offset);
 int  searchstubhash(int  st1,int b_offset,int e_offset);
 char* real_path1();
+char *str2md5(const char *str, int length) ;
+char* sha1(char str[],int len);
