@@ -1,3 +1,4 @@
+/*Dedup File*/
 #include "main.h"
 #define NAME_SIZE 100
 int dedup_file(char* filename,int chunk_type,int hash_type,int block_size)
