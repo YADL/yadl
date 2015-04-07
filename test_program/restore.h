@@ -11,7 +11,7 @@
 #include<time.h> 
 #include <libgen.h> 
 #include<openssl/md5.h>
-#if defined(Srinivas)
+#if defined(CFLAG)
 #define COMMON_DIGEST_FOR_OPENSSL
 #include <CommonCrypto/CommonDigest.h>
 #include <linux/limits.h>
@@ -23,20 +23,27 @@
 #define block 10
 #define NAME_SIZE 100
 #define int_size sizeof(int)
-int selecthash(char[],int,int);
-int readTemp(int);
-int searchhash(char *out,int filedes);
-int readBlockTemp(int filedes);
-int write_hash(char buff[],int filedes,int offset);
-int write_to_block(char buff[],size_t l,int filedes);
-int writecatalog(int fc,char* argv);
-int readcatalog(int fc);
-int searchpath(char out[],int filedes);
-int file_exist(char *filename);
-int write_to_stub(char buff[],size_t l,int filedes,int b_offset,int e_offset);
-char* gethash(int  st1,int b_offset,int e_offset);
-int searchBlock(int filedes,int filedes1,int st1,int b_offset,int  e_offset);
-int getposition(int filedes,char* hash);
-char* getblock(int filedes1,int pos);
-int searchhashstub(int  st1,int b_offset,int e_offset);
-int  searchstubhash(int  st1,int b_offset,int e_offset);
+
+/*@description:Function to get the position of specific block in hash
+@in: char* hash-hash
+@out: int 
+@return: -1 for error and 0 if found. */
+int getposition(char* hash);
+
+/*@description:Function to restore file.  
+@in: char* path-path of file to be restored
+@out: int
+@return: -1 for error and 0 if found. */
+int restorefile(char* path);
+
+/*@description:Function to search whether file path is present or not.If present will call restorefile to restore file. 
+@in: void
+@out: int
+@return: -1 for error and 0 if found. */
+int restore_file();
+
+/*@description:Function to get specific block from specified position 
+@in: int pos-position of block,
+@out: char*
+@return: block */
+char* get_block(int pos);

@@ -11,7 +11,7 @@
 #include<time.h> 
 #include <libgen.h> 
 #include<openssl/md5.h>
-#if defined(Srinivas)
+#if defined(CFLAG)
 #define COMMON_DIGEST_FOR_OPENSSL
 #include <CommonCrypto/CommonDigest.h>
 #include <linux/limits.h>
@@ -20,23 +20,36 @@
 #include<openssl/ssl.h>
 #include<openssl/sha.h>
 #endif
-#define block 10
 #define NAME_SIZE 100
-#define int_size sizeof(int)
-int selecthash(char[],int,int);
-int readTemp(int);
-int searchhash(char *out,int filedes);
-int readBlockTemp(int filedes);
-int write_hash(char buff[],int filedes,int offset);
-int write_to_block(char buff[],size_t l,int filedes);
-int writecatalog(int fc,char* argv);
-int readcatalog(int fc);
-int searchpath(char out[],int filedes);
-int file_exist(char *filename);
-int write_to_stub(char buff[],size_t l,int filedes,int b_offset,int e_offset);
-char* gethash(int  st1,int b_offset,int e_offset);
-int searchBlock(int filedes,int filedes1,int st1,int b_offset,int  e_offset);
-int getposition(int filedes,char* hash);
-char* getblock(int filedes1,int pos);
-int searchhashstub(int  st1,int b_offset,int e_offset);
-int  searchstubhash(int  st1,int b_offset,int e_offset);
+#define INT_SIZE sizeof(int)
+
+struct block_store
+{
+	size_t fd_block;
+};
+
+static struct block_store fd;
+
+/*@description:Function to create blockstore
+@in: void
+@out: int 
+@return: -1 for error and 0 if created successfully */
+int init_block_store();
+
+/*@description:Function to insert block to blockstore
+@in: char *buff-buffer containing block,size_t length-size of block
+@out: int 
+@return: -1 for error and 0 if inserted successfully */
+int insert_block(char *buff,size_t l);
+
+/*@description:Function to get specific block from specified position 
+@in: int pos-position of block,
+@out: char*
+@return: block */
+char* get_block(int pos);
+
+/*@description:Function to close filedescriptor of blockstore
+@in: void
+@out: int 
+@return: -1 for error and 0 if closed successfully */
+int fini_block_store();

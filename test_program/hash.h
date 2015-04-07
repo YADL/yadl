@@ -11,7 +11,7 @@
 #include<time.h> 
 #include <libgen.h> 
 #include<openssl/md5.h>
-#if defined(Srinivas)
+#if defined(CFLAG)
 #define COMMON_DIGEST_FOR_OPENSSL
 #include <CommonCrypto/CommonDigest.h>
 #include <linux/limits.h>
@@ -23,20 +23,34 @@
 #define block 10
 #define NAME_SIZE 100
 #define int_size sizeof(int)
-int selecthash(char[],int,int);
-int readTemp(int);
-int searchhash(char *out,int filedes);
-int readBlockTemp(int filedes);
-int write_hash(char buff[],int filedes,int offset);
-int write_to_block(char buff[],size_t l,int filedes);
-int writecatalog(int fc,char* argv);
-int readcatalog(int fc);
-int searchpath(char out[],int filedes);
-int file_exist(char *filename);
-int write_to_stub(char buff[],size_t l,int filedes,int b_offset,int e_offset);
-char* gethash(int  st1,int b_offset,int e_offset);
-int searchBlock(int filedes,int filedes1,int st1,int b_offset,int  e_offset);
-int getposition(int filedes,char* hash);
-char* getblock(int filedes1,int pos);
-int searchhashstub(int  st1,int b_offset,int e_offset);
-int  searchstubhash(int  st1,int b_offset,int e_offset);
+
+static int fd_hash;
+/*@description:Function to create hashstore
+@in: void
+@out: int 
+@return: -1 for error and 0 if created successfully */
+int init_hash_store();
+
+/*@description:Function to insert hash to hashstore
+@in: char *buff-buffer that contains hash,int offset-starting position of block
+@out: int 
+@return: -1 for error and 0 if inserted successfully */
+int insert_hash(char *buff,int offset);
+
+/*@description:Function to check whether hash is already present or not.
+@in: char *out-input hash
+@out: int hash
+@return: -1 for error and 0 if hash already present */
+int searchhash(char *out);
+
+/*@description:Function to get the position of specific block in hash
+@in: char* hash-hash
+@out: int 
+@return: -1 for error and 0 if found. */
+int getposition(char* hash);
+
+/*@description:Function to create blockstore
+@in: void
+@out: int 
+@return: -1 for error and 0 if closed successfully */
+int fini_hash_store();

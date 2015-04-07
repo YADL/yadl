@@ -11,7 +11,7 @@
 #include<time.h> 
 #include <libgen.h> 
 #include<openssl/md5.h>
-#if defined(Srinivas)
+#if defined(CFLAG)
 #define COMMON_DIGEST_FOR_OPENSSL
 #include <CommonCrypto/CommonDigest.h>
 #include <linux/limits.h>
@@ -23,20 +23,15 @@
 #define block 10
 #define NAME_SIZE 100
 #define int_size sizeof(int)
-int selecthash(char[],int,int);
-int readTemp(int);
-int searchhash(char *out,int filedes);
-int readBlockTemp(int filedes);
-int write_hash(char buff[],int filedes,int offset);
-int write_to_block(char buff[],size_t l,int filedes);
-int writecatalog(int fc,char* argv);
-int readcatalog(int fc);
-int searchpath(char out[],int filedes);
-int file_exist(char *filename);
-int write_to_stub(char buff[],size_t l,int filedes,int b_offset,int e_offset);
-char* gethash(int  st1,int b_offset,int e_offset);
-int searchBlock(int filedes,int filedes1,int st1,int b_offset,int  e_offset);
-int getposition(int filedes,char* hash);
-char* getblock(int filedes1,int pos);
-int searchhashstub(int  st1,int b_offset,int e_offset);
-int  searchstubhash(int  st1,int b_offset,int e_offset);
+
+/*@description:Function to write hash,beginning offset and ending offset of block to stub
+@in: char *buff-buffer containing hash,size_t l-length of hash,int filedes-file descriptor of stub,int b_offset-beginning offset of block,int e_offset-ending offset of bloc
+@out: int 
+@return: -1 for error and 0 if found. */
+int write_to_stub(char buff[],size_t l,int fd_stub,int b_offset,int e_offset);
+
+/*@description:Function to check single instance of block of specified position
+@in: int  fd_stub-filedescriptor of stub,int b_offset-beginning offset of block,int e_offset-ending offset of block
+@out: int 
+@return: -1 for error and 0 if found. */
+int searchstubhash(int fd_stub,int b_offset,int e_offset);

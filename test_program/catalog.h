@@ -11,7 +11,7 @@
 #include<time.h> 
 #include <libgen.h> 
 #include<openssl/md5.h>
-#if defined(Srinivas)
+#if defined(CFLAG)
 #define COMMON_DIGEST_FOR_OPENSSL
 #include <CommonCrypto/CommonDigest.h>
 #include <linux/limits.h>
@@ -23,20 +23,41 @@
 #define block 10
 #define NAME_SIZE 100
 #define int_size sizeof(int)
-int selecthash(char[],int,int);
-int readTemp(int);
-int searchhash(char *out,int filedes);
-int readBlockTemp(int filedes);
-int write_hash(char buff[],int filedes,int offset);
-int write_to_block(char buff[],size_t l,int filedes);
-int writecatalog(int fc,char* argv);
-int readcatalog(int fc);
-int searchpath(char out[],int filedes);
-int file_exist(char *filename);
-int write_to_stub(char buff[],size_t l,int filedes,int b_offset,int e_offset);
-char* gethash(int  st1,int b_offset,int e_offset);
-int searchBlock(int filedes,int filedes1,int st1,int b_offset,int  e_offset);
-int getposition(int filedes,char* hash);
-char* getblock(int filedes1,int pos);
-int searchhashstub(int  st1,int b_offset,int e_offset);
-int  searchstubhash(int  st1,int b_offset,int e_offset);
+
+static size_t fd_cat;
+
+/*@description:Function to create catalogstore
+@in: void
+@out: int 
+@return: -1 for error and 0 if created successfully */
+int init_catalog_store();
+
+/*@description:Function to write the full path of file to catalog
+@in: char* filename-filename of file that has been deduped
+@out: int 
+@return: -1 for error and 0 if inserted successfully */
+int writecatalog(char* filename);
+
+/*@description:Function to check whether path is present or not
+@in: char out[]-path,int filedes-file descriptor of file
+@out: int 
+@return: -1 for error and 0 if found. */
+int searchpath(char out[]);
+
+/*@description:Function to read all deduped files from a catalog file.
+@in: void
+@out: int 
+@return: -1 for error and 0 if created successfully */
+int readfilecatalog();
+
+/*@description:Function to compare absolute path of file in file catalog.
+@in: char out[]-path of file.
+@out: int 
+@return: -1 for error and 0 if created successfully */
+int comparepath(char out[]);
+
+/*@description:Function to close filedescriptor of catalogstore
+@in: void
+@out: int 
+@return: -1 for error and 0 if closed successfully */
+int fini_catalog_store();
