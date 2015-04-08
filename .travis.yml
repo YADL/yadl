@@ -2,4 +2,4 @@ language: c
 compiler:
     - gcc
 script:
-    - make
+    - cd test_program && make
