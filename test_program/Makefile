@@ -24,4 +24,4 @@ libdedup.a:md5.o sha1.o delete.o hash.o block.o stub.o catalog.o dedup.o Restore
 dedup:main.c libdedup.a
 	gcc -g main.c -o dedup -L. -ldedup -lssl -lcrypto
 clean:
-	rm -f *.o
+	rm -f *.o dedup libdedup.a
