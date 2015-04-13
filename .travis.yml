@@ -3,7 +3,9 @@ sudo: true
 compiler:
     - gcc
 before_install:
-    - git clone https://github.com/lpabon/cmockery2.git
-    - cd cmockery2 && ./autogen.sh && ./configure --prefix=/usr && make && sudo make install
+    - sudo add-apt-repository ppa:lpabon/cmockery2 -y
+    - sudo apt-get -y update -q
+    - sudo apt-get -y install cmockery2 cmockery2-dev
 script:
+    - pkg-config --libs --cflags cmockery2
     - cd test_program && make
