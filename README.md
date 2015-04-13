@@ -1,4 +1,3 @@
 # yadl
 
-Documentation : https://github.com/YADL/yadl/wiki
-
+Documentation is available in the [Wiki](https://github.com/YADL/yadl/wiki)
