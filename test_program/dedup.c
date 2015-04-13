@@ -28,6 +28,7 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
         char* dir               =       NULL;
         char* filename1         =       NULL;
         char temp_name[NAME_SIZE]=      "";
+        char* buffer            =       NULL;
         struct stat st;
         
         ts1 = strdup(filename);
@@ -55,8 +56,6 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
         fd_stub =open(temp_name,O_APPEND|O_CREAT|O_RDWR);
         if (fd_stub< 1)
         {
-	
-
                 fprintf(stderr,"%s\n",strerror(errno));
                 goto out;
         }
@@ -69,8 +68,6 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                         block_size=size;
                 }
                 b_offset=e_offset;
-                char* buffer            =       NULL;
-                buffer=(char*)calloc(1,length);
                 ret=get_next_chunk(fd_input, chunk_type,block_size,
                 &buffer, &length);
                 if (ret<= 0)
@@ -95,9 +92,7 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                         break;
                 }
                 clean_buff(&buffer);
-		//buffer=NULL;
                 clean_buff(&hash);
-		//hash=NULL;
         }
         ret=writecatalog(filename);
         if (ret== -1)
@@ -123,7 +118,7 @@ int *length)
 
         int ret	        =       -1;
         
-        *buffer=(char *)malloc(block_size+1);
+        *buffer=(char *)calloc(1,block_size+1);
         ret=read(fd_input,*buffer,block_size);
         if (ret< 1)
                 goto out;
@@ -132,7 +127,6 @@ out:
         return ret;
 
 }
-
 
 /*
 Function to get hash from a specific algorithm.
@@ -175,7 +169,6 @@ int
 chunk_store(char *buff,char *hash,int length,int h_length,int e_offset,
 int b_offset,int fd_stub)
 {
-
         
         int fd_block            =       -1;
         int off	                =       -1;

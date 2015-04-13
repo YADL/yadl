@@ -23,6 +23,7 @@
 #define block 10
 #define NAME_SIZE 100
 #define int_size sizeof(int)
+#define FILE_SIZE  200
 
 /*@description:Function to get the position of specific block in hash
 @in: char* hash-hash

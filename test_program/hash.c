@@ -7,7 +7,8 @@ int
 init_hash_store()
 {
         
-        int ret		=	-1;
+        int ret         =       -1;
+        
         fd_hash = open("filehashDedup.txt",O_APPEND|O_CREAT|O_RDWR);
         if (fd_hash == -1)
         {
@@ -30,15 +31,16 @@ int
 insert_hash(char *buff,int offset)
 {
     
-        size_t 	        l;
+        size_t 	        length;
         int ret         =               -1;
-        l=strlen(buff);
-        if (write (fd_hash, &l, int_size)== -1)
+        
+        length=strlen(buff);
+        if (write (fd_hash, &length, int_size)== -1)
         {
                 printf("\nWrite failed with error%s\n",strerror(errno));
                 goto out;
         }
-        if (-1 == write(fd_hash,buff,l))
+        if (-1 == write(fd_hash,buff,length))
         {
                 printf("\nWrite1 failed with error%s\n",strerror(errno));
                 goto out;
@@ -67,7 +69,7 @@ searchhash(char *out)
         int     size            =               0;
         size_t  length          =               0;
         int     ret             =               -1;
-        int     flag    	=               1;
+        int     flag            =               1;
         int offset              =               0;
         char*   buffer          =               NULL;
         
@@ -92,7 +94,7 @@ searchhash(char *out)
                         printf("\nError while reading %s\n",strerror(errno));
                         goto out;
                 }
-                buffer=(char*)calloc(1,length);
+                buffer=(char*)calloc(1,length+1);
                 ret = read(fd2,buffer,length);
                 if (ret== -1)
                 {
@@ -110,13 +112,14 @@ searchhash(char *out)
                 if (strcmp(out,buffer)== 0)
                 {
                         ret=0;
+                        clean_buff(&buffer);
                         break;
                 }
                 size-=(length+int_size+int_size);
+                clean_buff(&buffer);
                 ret=1;
         }
 out:
-	clean_buff(&buffer);
         return ret;
 
 }
@@ -162,7 +165,7 @@ getposition(char* hash)
                         printf("\nError while reading %s",strerror(errno));
                         goto out;
                 }
-                buffer=(char*)calloc(1,length);
+                buffer=(char*)calloc(1,length+1);
                 hash[h_length]='\0';
                 ret = read(fd_hash,buffer,length);
                 if (ret== -1)
@@ -180,10 +183,11 @@ getposition(char* hash)
                 if (strcmp(hash,buffer)== 0)
                 {
                         ret=0;
+                        clean_buff(&buffer);
                         break;
                 }
                 size-=(length+int_size+int_size);
-                memset(buffer,0,sizeof(buffer));
+                clean_buff(&buffer);
                 ret=-1;
         }
 out:
@@ -204,6 +208,7 @@ fini_hash_store()
 {
         
         int ret         =       -1;
+        
         if (fd_hash != -1)
                 ret=close(fd_hash);
         if(ret==-1)

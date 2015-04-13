@@ -35,4 +35,5 @@ char* str2md5(const char *str, int length)
         }
 
         return out;
+        
 }

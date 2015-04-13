@@ -4,15 +4,16 @@ int
 main ( int argc, char *argv[] )
 {
     
-        int chunk_type  =       0;
+        int chunk_type      =       0;
         int hash_type       =       0;
-        char filename[100]  =       " ";
+        char *filename      =       NULL;
         int ch              =       0;
         int block_size      =       0;
         int fd_cat          =       -1;
         int ret             =       -1;
         char c;
-
+        
+        filename=(char*)calloc(1,FILE_SIZE);
         ret=init_block_store();
         if (ret== -1)
         {
@@ -117,6 +118,8 @@ Output:int
 inline int 
 file_exist(char *filename)
 {
-	struct stat   buffer;
-	return (stat (filename, &buffer) == 0);
+        
+        struct stat   buffer;
+        return (stat (filename, &buffer) == 0);
+
 }

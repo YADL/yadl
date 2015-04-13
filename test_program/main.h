@@ -6,6 +6,7 @@
 #include<dirent.h>
 #include<errno.h>
 #include<fcntl.h>
+#define FILE_SIZE  200
 
 
 

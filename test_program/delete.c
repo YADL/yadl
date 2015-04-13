@@ -13,7 +13,7 @@ delete_file()
         int status      =       -1;
         char *filename  =       NULL;
     
-        filename=(char*)malloc(sizeof(char));
+        filename=(char*)calloc(1,FILE_SIZE);
         fd_cat =open("filecatalog.txt",O_RDONLY); 
         if (fd_cat< 1)
         {
@@ -21,7 +21,7 @@ delete_file()
                 goto out;
         }
         printf("\n deduped files are\n");
-        ret=readfilecatalog(fd_cat);
+        ret=readfilecatalog();
         if (ret== -1)
         {
                 fprintf(stderr,"%s\n",strerror(errno));
@@ -31,7 +31,7 @@ delete_file()
         scanf("%s",filename);
         printf("\nFILE%s",filename);
         status = remove(filename);
-        if( status == 0 )
+        if( status== 0 )
                 printf("\nFile deleted successfully.\n");
         else
         {
@@ -41,6 +41,7 @@ delete_file()
         }
         ret=0;
 out:
+        clean_buff(&filename);
 return ret;
 
 }
