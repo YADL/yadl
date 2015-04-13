@@ -1,5 +1,9 @@
 language: c
+sudo: true
 compiler:
     - gcc
+before_install:
+    - git clone https://github.com/lpabon/cmockery2.git
+    - cd cmockery2 && ./autogen.sh && ./configure --prefix=/usr && make && sudo make install
 script:
     - cd test_program && make
