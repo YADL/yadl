@@ -1,5 +1,6 @@
 #include "main.h"
 
+/*Main program!*/
 int
 main ( int argc, char *argv[] )
 {
