@@ -1,9 +1,12 @@
 #include "stub.h"
 
-/*Function to write contents to a stub file.
-Input:char buff[],size_t l,int fd_stub,int b_offset,int e_offset
-Output:int
-*/
+/*
+ * Function to write contents to a stub file.
+ * Input:char buff[],size_t l,int fd_stub,int b_offset,int e_offset
+ * Output:int
+ *
+ */
+
 int
 write_to_stub(char buff[],size_t length,int fd_stub,int b_offset,int e_offset)
 {
