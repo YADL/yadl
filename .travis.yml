@@ -5,5 +5,4 @@ compiler:
 before_install:
     - bash .travis_cmockery2.sh
 script:
-    - pkg-config --libs --cflags cmockery2
     - cd test_program && make
