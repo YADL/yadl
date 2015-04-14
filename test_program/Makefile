@@ -1,3 +1,6 @@
+TEST_CFLAGS=$(shell pkg-config --cflags cmockery2)
+TETS_LDFLAGS=$(shell pkg-config --libs cmockery2)
+
 test:md5.o sha1.o delete.o hash.o block.o stub.o catalog.o dedup.o Restore_file.o clean_buff.o dedup libdedup.a
 dedup.o:dedup.c dedup.h
 	gcc -c dedup.c -lssl -lcrypto 
