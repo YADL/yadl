@@ -3,9 +3,7 @@ sudo: true
 compiler:
     - gcc
 before_install:
-    - sudo add-apt-repository ppa:lpabon/cmockery2 -y
-    - sudo apt-get -y update -q
-    - sudo apt-get -y install cmockery2 cmockery2-dev
+    - bash .travis_cmockery2.sh
 script:
     - pkg-config --libs --cflags cmockery2
     - cd test_program && make
