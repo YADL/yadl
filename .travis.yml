@@ -1,5 +1,8 @@
 language: c
+sudo: true
 compiler:
     - gcc
+before_install:
+    - bash .travis_cmockery2.sh
 script:
     - cd test_program && make
