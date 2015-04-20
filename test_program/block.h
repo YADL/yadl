@@ -46,7 +46,7 @@ int insert_block(char *buff,size_t l);
 @in: int pos-position of block,
 @out: char*
 @return: block */
-char* get_block(int pos);
+int get_block(int pos);
 
 /*@description:Function to close filedescriptor of blockstore
 @in: void

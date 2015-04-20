@@ -2,6 +2,13 @@
 #include<string.h>  
 #include<stdlib.h> 
 #include<unistd.h>
+#include <malloc.h>
+#ifdef UNIT_TESTING
+/* Must be last include */
+#include <cmockery/cmockery_override.h>
+#endif
+
+
 #include<dirent.h>
 #include<errno.h>
 #include<ctype.h> 

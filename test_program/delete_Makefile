@@ -1,0 +1,9 @@
+
+CFLAGS=$(shell pkg-config --libs --cflags cmockery2)
+
+all:delete_test
+
+delete_test:delete.c delete.h  delete_test.c delete_Makefile
+	gcc -o delete_test delete.c delete.h delete_test.c $(CFLAGS)
+
+

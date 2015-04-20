@@ -2,6 +2,13 @@
 #include<string.h>  
 #include<stdlib.h> 
 #include<unistd.h>
+#include <malloc.h>
+#ifdef UNIT_TESTING
+/* Must be last include */
+#include <cmockery/cmockery_override.h>
+#endif
+
+
 #include<dirent.h>
 #include<errno.h>
 #include<ctype.h> 
@@ -61,3 +68,4 @@ int comparepath(char out[]);
 @out: int 
 @return: -1 for error and 0 if closed successfully */
 int fini_catalog_store();
+inline void clean_buff(char** buffer);
