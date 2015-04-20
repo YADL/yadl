@@ -1,4 +1,13 @@
 #include "hash.h"
+#include<assert.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
+#include <inttypes.h>
+#include<cmockery/pbc.h>
+#include <cmockery/cmockery.h>
+#include <cmockery/cmockery_override.h>
+
 
 /*Function to create hash for a given block
 Input:void
@@ -35,6 +44,9 @@ insert_hash(char *buff,int offset)
         int ret         =               -1;
         
         length=strlen(buff);
+        REQUIRE(buff!=NULL);
+        REQUIRE(offset>=0);
+        assert(length>0);
         if (write (fd_hash, &length, int_size)== -1)
         {
                 printf("\nWrite failed with error%s\n",strerror(errno));
@@ -69,10 +81,9 @@ searchhash(char *out)
         int     size            =               0;
         size_t  length          =               0;
         int     ret             =               -1;
-        int     flag            =               1;
         int offset              =               0;
         char*   buffer          =               NULL;
-        
+        REQUIRE(out!=NULL);
         fstat(fd_hash, &st);
         size = st.st_size;
         // rewind the stream pointer to the start of temporary file
@@ -94,6 +105,7 @@ searchhash(char *out)
                         printf("\nError while reading %s\n",strerror(errno));
                         goto out;
                 }
+                assert(length>0);
                 buffer=(char*)calloc(1,length+1);
                 ret = read(fd2,buffer,length);
                 if (ret== -1)
@@ -116,7 +128,7 @@ searchhash(char *out)
                         break;
                 }
                 size-=(length+int_size+int_size);
-                clean_buff(&buffer);
+               	clean_buff(&buffer);
                 ret=1;
         }
 out:
@@ -136,15 +148,13 @@ getposition(char* hash)
         int     size    =       0;
         size_t  length  =       0;
         int     ret     =       -1;
-        int     flag    =       1;
         int     offset  =       0;
         char*   buffer  =       NULL;
-        char* hash1     =       NULL;
-        int h_length    =       0;
-        
+        REQUIRE(hash!=NULL);
         fstat(fd_hash, &st);
         size = st.st_size;
-        h_length=strlen(hash);
+        assert(size>0);
+       
         // rewind the stream pointer to the start of temporary file
         if (-1 == lseek(fd_hash,0,SEEK_SET))
         {
@@ -165,8 +175,8 @@ getposition(char* hash)
                         printf("\nError while reading %s",strerror(errno));
                         goto out;
                 }
+                assert(length>0);
                 buffer=(char*)calloc(1,length+1);
-                hash[h_length]='\0';
                 ret = read(fd_hash,buffer,length);
                 if (ret== -1)
                 {
