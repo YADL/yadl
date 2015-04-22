@@ -1,17 +1,17 @@
 #include "stub.h"
 
-/*
- * Function to write contents to a stub file.
- * Input:char buff[],size_t l,int fd_stub,int b_offset,int e_offset
- * Output:int
- *
- */
-
+/*Function to write contents to a stub file.
+Input:char buff[],size_t l,int fd_stub,int b_offset,int e_offset
+Output:int
+*/
 int
 write_to_stub(char buff[],size_t length,int fd_stub,int b_offset,int e_offset)
 {
         
         int ret	        =        -1;
+        REQUIRE(buff!=NULL);
+        REQUIRE(length>0);
+        REQUIRE(fd_stub>0);
 
         if(write (fd_stub, &length, int_size)==-1)
         {
@@ -35,6 +35,7 @@ write_to_stub(char buff[],size_t length,int fd_stub,int b_offset,int e_offset)
         }
         ret=0;
 out:
+        ENSURE (ret== 0);
         return ret;
 
 }
@@ -51,12 +52,12 @@ searchstubhash(int fd_stub,int b_offset,int e_offset)
         int    size             =               0;
         size_t  length          =               0;
         int     ret             =              -1;
-        int     flag            =               1;
         int eset                =               0;
         int bset                =               0;
         char*   buffer          =               NULL;
+        
+        REQUIRE(fd_stub>0);
         fstat(fd_stub, &st);
-
         size = st.st_size;
         // rewind the stream pointer to the start of stub file
         if (size> 0)
@@ -72,7 +73,6 @@ searchstubhash(int fd_stub,int b_offset,int e_offset)
                 ret     =       1;
                 goto out;
         }
-
         while (size> 0)
         {
                 ret=read(fd_stub,&length,int_size);
