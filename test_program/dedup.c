@@ -1,6 +1,10 @@
 #include "dedup.h"
-#include "main.h"
-#define NAME_SIZE 100
+#include <cmockery/pbc.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
+#include <inttypes.h>
+#include <cmockery/cmockery.h>
 
 /*
 Function to dedup a file whose path is specified by the user.
@@ -13,15 +17,12 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
 
         int ret                 =       -1;
         int fd_input            =       -1;
-        int fd_cat              =       -1;
         int fd_stub             =       -1;
         int length              =       0;
         int h_length            =       0;
         int b_offset            =       0;
         int e_offset            =       0;
         int size                =       0;
-        int size1               =       0;
-        char* buff              =       NULL;
         char* hash              =       NULL;
         char* ts1               =       NULL;
         char* ts2               =       NULL;
@@ -30,7 +31,10 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
         char temp_name[NAME_SIZE]=      "";
         char* buffer            =       NULL;
         struct stat st;
-        
+        REQUIRE(filename!=NULL);
+        REQUIRE(block_size>0);
+        REQUIRE(hash_type==1 || hash_type==2 );
+        REQUIRE(chunk_type==1 ||chunk_type==2);
         ts1 = strdup(filename);
         ts2 = strdup(filename);
         dir = dirname(ts1);
@@ -43,22 +47,13 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                 fprintf(stderr,"%s\n",strerror(errno));
                 goto out;
         }
-        ret=comparepath(filename);
-        if (ret== -1)
-        {
-                goto out;
-        }
-        if (ret== 0)
-        {
-                printf("\nfile is already deduped");
-                goto out;
-        }
         fd_stub =open(temp_name,O_APPEND|O_CREAT|O_RDWR);
         if (fd_stub< 1)
         {
                 fprintf(stderr,"%s\n",strerror(errno));
                 goto out;
         }
+
         fstat(fd_input, &st);
         size = st.st_size;
         while(1)
@@ -83,16 +78,17 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                         goto out;
                 printf("\nboffset %d eoffset %d\n",b_offset,e_offset);
                 ret=chunk_store(buffer,hash,length,h_length,b_offset,e_offset,fd_stub);
-                if (ret== -1)	
+                if (ret== -1)
                         goto out;
                 e_offset++;
+                clean_buff(&buffer);
+                clean_buff(&hash);
                 if (size<= 0)
                 {
                         ret=0;
                         break;
                 }
-                clean_buff(&buffer);
-                clean_buff(&hash);
+
         }
         ret=writecatalog(filename);
         if (ret== -1)
@@ -100,7 +96,7 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                 goto out;
         }
 ret=0;
-out: 
+out:
         return ret;
 
 }
@@ -111,13 +107,13 @@ Input:int fd_input,int chunk_type,int block_size,char** buffer,
 int *length
 Output:int
 */
-int 
+int
 get_next_chunk(int fd_input,int chunk_type,int block_size,char** buffer,
 int *length)
 {
 
         int ret	        =       -1;
-        
+        REQUIRE(fd_input>0);
         *buffer=(char *)calloc(1,block_size+1);
         ret=read(fd_input,*buffer,block_size);
         if (ret< 1)
@@ -133,13 +129,15 @@ Function to get hash from a specific algorithm.
 Input:char *buffer,int length,int hash_type,char** hash,int *h_length
 Output:int
 */
-int 
+int
 get_hash(char *buffer,int length,int hash_type,char** hash,int *h_length)
 {
-        
+
         int ret         =       -1;
         char *buf       =       NULL;
         char *buff      =       NULL;
+        REQUIRE(buffer!=NULL);
+        REQUIRE(length>0);
 
         switch(hash_type)
         {
@@ -165,12 +163,11 @@ Input:char *buff,char *hash,int length,int h_length,int e_offset,
 int b_offset,int fd_stub
 Output:int
 */
-int 
+int
 chunk_store(char *buff,char *hash,int length,int h_length,int e_offset,
 int b_offset,int fd_stub)
 {
-        
-        int fd_block            =       -1;
+
         int off	                =       -1;
         int ret	                =       -1;
 
@@ -226,8 +223,4 @@ out:
         return ret;
 
 }
-
-
-
-
 

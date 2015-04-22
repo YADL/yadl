@@ -1,6 +1,5 @@
 #include "main.h"
 
-/*Main program!*/
 int
 main ( int argc, char *argv[] )
 {
@@ -48,6 +47,16 @@ main ( int argc, char *argv[] )
                 if (ret== 0)
                 {
                         fprintf(stderr,"%s\n",strerror(errno));
+                        continue;
+                }
+                ret=comparepath(filename);
+                if (ret== -1)
+                {
+                        goto out;
+                }
+                if (ret== 0)
+                {
+                        printf("\nfile is already deduped\n");
                         continue;
                 }
                 printf("\nDo you want to do fixed or variable chunking\n");

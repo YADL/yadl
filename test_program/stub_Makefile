@@ -1,0 +1,9 @@
+
+CFLAGS=$(shell pkg-config --libs --cflags cmockery2)
+
+all:stub_test
+
+stub_test:stub.c stub.h  stub_test.c clean_buff.c clean_buff.h stub_Makefile
+	gcc -o  stub_test stub.c stub.h  stub_test.c clean_buff.c clean_buff.h $(CFLAGS)
+
+
