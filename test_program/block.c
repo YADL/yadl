@@ -1,4 +1,22 @@
 #include "block.h"
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
+#include <inttypes.h>
+#include<cmockery/pbc.h>
+#include <cmockery/cmockery.h>
+#include <cmockery/cmockery_override.h>
+inline void clean_buff(char** buffer)
+{
+
+        if(*buffer!=NULL)
+        {
+                free(*buffer);
+                *buffer=NULL;
+
+        }
+
+}
 
 /*Function to create block file.
 Input:void
@@ -6,7 +24,7 @@ Output:int*/
 int
 init_block_store()
 {
-        
+
         int ret         =       -1;
 
         fd.fd_block =open("blockstore.txt",O_APPEND|O_CREAT|O_RDWR);
@@ -26,12 +44,13 @@ out:
 Input:char *buffer,size_t length
 Output:int
 */
-int 
+int
 insert_block(char *buffer,size_t length)
 {
-        
+
         int ret		=		-1;
-        
+        REQUIRE(buffer!=NULL);
+        REQUIRE(length>0);
         if (length<= 0)
         {
                 goto out;
@@ -54,6 +73,7 @@ insert_block(char *buffer,size_t length)
                 fprintf(stderr,"%s\n",strerror(errno));
                 goto out;
         }
+	ret=0;
 out:
         return ret;
 
@@ -63,10 +83,10 @@ out:
 Input:int pos
 Output:char*
 */
-char* 
+int
 get_block(int pos)
 {
-    
+
         struct stat             st;
         int     size    =               0;
         size_t  length  =               0;
@@ -76,6 +96,8 @@ get_block(int pos)
 
         fstat(fd.fd_block, &st);
         size = st.st_size;
+        REQUIRE(size>0);
+        check_expected(pos);
         // rewind the stream pointer to the start of block file
         if (size> 0)
         {
@@ -102,7 +124,7 @@ get_block(int pos)
 
                 if (position== pos)
                 {
-                      
+
                         ret = read(fd.fd_block,buffer,length);
                         if (ret== -1)
                         {
@@ -111,9 +133,11 @@ get_block(int pos)
                         }
                         ret=0;
                         buffer[length]='\0';
+                        printf("buffer is  %s\n",buffer);
+                        clean_buff(&buffer);
                         break;
                 }
-               
+
                 ret = read(fd.fd_block,buffer,length);
                 if (ret== -1)
                 {
@@ -128,11 +152,8 @@ get_block(int pos)
         }
         ret=0;
 out:
-        if (ret== -1)
-        {
-                memset(buffer,0,sizeof(buffer));
-        }
-        return buffer;
+
+        return ret;
 
 }
 
@@ -142,9 +163,9 @@ Output:int*/
 int
 fini_block_store()
 {
-        
+
         int ret         =       -1;
-        
+        REQUIRE(fd.fd_block!=-1);
         if (fd.fd_block != -1)
                 ret=close(fd.fd_block);
         if(ret==-1)

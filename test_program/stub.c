@@ -1,17 +1,37 @@
 #include "stub.h"
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
+#include <inttypes.h>
+#include<cmockery/pbc.h>
+#include <cmockery/cmockery.h>
+#include <cmockery/cmockery_override.h>
+inline void clean_buff(char** buffer)
+{
 
-/*
- * Function to write contents to a stub file.
- * Input:char buff[],size_t l,int fd_stub,int b_offset,int e_offset
- * Output:int
- *
- */
+        if(*buffer!=NULL)
+        {
+                free(*buffer);
+                *buffer=NULL;
 
+        }
+
+}
+
+
+/*Function to write contents to a stub file.
+Input:char buff[],size_t l,int fd_stub,int b_offset,int e_offset
+Output:int
+*/
 int
 write_to_stub(char buff[],size_t length,int fd_stub,int b_offset,int e_offset)
 {
-        
+
         int ret	        =        -1;
+	REQUIRE(buff!=NULL);
+	REQUIRE(length==1000);
+	REQUIRE(fd_stub>0);
+
 
         if(write (fd_stub, &length, int_size)==-1)
         {
@@ -46,18 +66,22 @@ Output:int
 int
 searchstubhash(int fd_stub,int b_offset,int e_offset)
 {
-        
+
         struct stat             st;
         int    size             =               0;
         size_t  length          =               0;
         int     ret             =              -1;
-        int     flag            =               1;
+        //int     flag            =               1;
         int eset                =               0;
         int bset                =               0;
         char*   buffer          =               NULL;
         fstat(fd_stub, &st);
 
         size = st.st_size;
+        REQUIRE(fd_stub>0);
+        REQUIRE(size>0);
+        check_expected( b_offset);
+        check_expected( e_offset);
         // rewind the stream pointer to the start of stub file
         if (size> 0)
         {
