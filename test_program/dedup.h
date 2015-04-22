@@ -20,9 +20,6 @@
 #include<openssl/ssl.h>
 #include<openssl/sha.h>
 #endif
-#define NAME_SIZE  200
-#include "clean_buff.h"
-
 
 /*@description:Function to get hash of a particular block.
 @in: char *buffer-block contents strored in buffer,int length-length of buffer,int hash_type-type of hash(sha1 or md5)
@@ -94,36 +91,10 @@ int  searchstubhash(int  st1,int b_offset,int e_offset);
 @in: char *str-Buffer to store block for which the hash is generated,int length-length of block
 @out: char*-returns hash of block using md5
 @return: hash */
-extern char *str2md5(const char *str, int length) ;
+char *str2md5(const char *str, int length) ;
 
 /*@description:Function to create hash using sha1.
-@in: char* str-Buffer to store block for which the hash is generated,int length-length of block
+@in: char str[]-Buffer to store block for which the hash is generated,int length-length of block
 @out: char*-returns hash of block using sha1
 @return: hash */
-char* sha1(const char *str,int len);
-
-/*@description:Function to get hash.
-@in: char *buffer-buffer for hash,int length-length of buffer,int hash_type-type of hash used
-,char** hash-hash,int *h_length-hash length
-@out: int
-@return: hash */
-int 
-get_hash(char *buffer,int length,int hash_type,char** hash,int *h_length);
-
-/*@description:Function to get hash.
-@in: int fd_input-input file's fd,int chunk_type-type of chunk,int block_size-size of block,
-char** buffer-buffer,int *length-buffer length
-@out: int
-@return: block */
-int 
-get_next_chunk(int fd_input,int chunk_type,int block_size,char** buffer,
-int *length);
-
-/*@description:Function to get hash.
-@in: char *buff-buffer,char *hash-hash,int length-buffer length,int h_length-hash length,
-int b_offset-beginning offset,int e_offset-end offset,int fd_stub-fd of stub file.
-@out: int
-@return: block */
-int
-chunk_store(char *buff,char *hash,int length,int h_length,int b_offset,
-int e_offset,int fd_stub);
+char* sha1(char str[],int len);

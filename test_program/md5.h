@@ -13,17 +13,9 @@
 #include<openssl/ssl.h>
 #include<openssl/sha.h>
 #endif
-#include <stdarg.h>
-#include<stdlib.h> 
-#include <stddef.h>
-#include <setjmp.h>
-#include <inttypes.h>
-#include <cmockery/cmockery.h>
-#include <cmockery/cmockery_override.h>
 
 /*@description:Function to create hash using md5.
 @in: char *str-Buffer to store block for which the hash is generated,int length-length of block
 @out: char*-returns hash of block using md5
 @return: hash */
-char* 
-str2md5(const char *str, int length) ;
+char *str2md5(const char *str, int length) ;

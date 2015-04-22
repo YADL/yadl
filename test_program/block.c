@@ -1,11 +1,4 @@
 #include "block.h"
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-#include <inttypes.h>
-#include<cmockery/pbc.h>
-#include <cmockery/cmockery.h>
-#include <cmockery/cmockery_override.h>
 
 /*Function to create block file.
 Input:void
@@ -37,9 +30,8 @@ int
 insert_block(char *buffer,size_t length)
 {
         
-        int ret         =       -1;
-        REQUIRE(buffer!=NULL);
-        REQUIRE(length>0);
+        int ret		=		-1;
+        
         if (length<= 0)
         {
                 goto out;
@@ -62,7 +54,6 @@ insert_block(char *buffer,size_t length)
                 fprintf(stderr,"%s\n",strerror(errno));
                 goto out;
         }
-        ENSURE(ret>=0);
 out:
         return ret;
 
@@ -72,7 +63,7 @@ out:
 Input:int pos
 Output:char*
 */
-char * 
+char* 
 get_block(int pos)
 {
     
@@ -82,7 +73,7 @@ get_block(int pos)
         int     ret     =               -1;
         char*   buffer  =               NULL;
         int     position=               1;
-        REQUIRE(pos>=0);
+
         fstat(fd.fd_block, &st);
         size = st.st_size;
         // rewind the stream pointer to the start of block file
@@ -139,9 +130,8 @@ get_block(int pos)
 out:
         if (ret== -1)
         {
-              strcpy(buffer,"");
+                memset(buffer,0,sizeof(buffer));
         }
-        ENSURE(buffer!=NULL);
         return buffer;
 
 }
@@ -154,7 +144,7 @@ fini_block_store()
 {
         
         int ret         =       -1;
-        REQUIRE(fd.fd_block!=-1);
+        
         if (fd.fd_block != -1)
                 ret=close(fd.fd_block);
         if(ret==-1)

@@ -17,3 +17,4 @@ inline void clean_buff(char** buffer)
         }
 
 }
+

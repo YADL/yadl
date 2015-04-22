@@ -2,10 +2,6 @@
 #include<string.h>  
 #include<stdlib.h> 
 #include<unistd.h>
-#include<stdio.h>
-#include<string.h>  
-#include<stdlib.h> 
-#include<unistd.h>
 #include<dirent.h>
 #include<errno.h>
 #include<ctype.h> 
@@ -24,9 +20,10 @@
 #include<openssl/ssl.h>
 #include<openssl/sha.h>
 #endif
+#define block 10
 #define NAME_SIZE 100
 #define int_size sizeof(int)
-#include "clean_buff.h"
+
 static size_t fd_cat;
 
 /*@description:Function to create catalogstore
@@ -64,6 +61,3 @@ int comparepath(char out[]);
 @out: int 
 @return: -1 for error and 0 if closed successfully */
 int fini_catalog_store();
-
-
-inline void clean_buff(char** buffer);

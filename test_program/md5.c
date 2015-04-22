@@ -4,8 +4,7 @@
 Input:const char *str, int length
 Output:char*
 */
-char* 
-str2md5(const char *str, int length) 
+char* str2md5(const char *str, int length) 
 {
 
         int n;
@@ -38,5 +37,3 @@ str2md5(const char *str, int length)
         return out;
         
 }
-
-
