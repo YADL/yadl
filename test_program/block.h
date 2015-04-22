@@ -22,13 +22,10 @@
 #endif
 #define NAME_SIZE 100
 #define INT_SIZE sizeof(int)
-#include "clean_buff.h"
 
 struct block_store
 {
-        
-        size_t fd_block;
-
+	size_t fd_block;
 };
 
 static struct block_store fd;

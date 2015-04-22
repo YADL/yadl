@@ -38,7 +38,7 @@ restore_file()
         }
         ret=0;
 out:
-        clean_buff(&path);
+	clean_buff(&path);
         return ret;
         
 }

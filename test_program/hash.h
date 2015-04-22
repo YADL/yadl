@@ -2,10 +2,6 @@
 #include<string.h>  
 #include<stdlib.h> 
 #include<unistd.h>
-#include <malloc.h>
-#ifdef UNIT_TESTING
-#include <cmockery/cmockery_override.h>
-#endif
 #include<dirent.h>
 #include<errno.h>
 #include<ctype.h> 
@@ -27,7 +23,6 @@
 #define block 10
 #define NAME_SIZE 100
 #define int_size sizeof(int)
-#include "clean_buff.h"
 
 static int fd_hash;
 /*@description:Function to create hashstore
