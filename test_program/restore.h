@@ -29,22 +29,26 @@
 @in: char* hash-hash
 @out: int 
 @return: -1 for error and 0 if found. */
-int getposition(char* hash);
+int 
+getposition(char* hash);
 
 /*@description:Function to restore file.  
 @in: char* path-path of file to be restored
 @out: int
 @return: -1 for error and 0 if found. */
-int restorefile(char* path);
+int 
+restorefile(char* path);
 
 /*@description:Function to search whether file path is present or not.If present will call restorefile to restore file. 
 @in: void
 @out: int
 @return: -1 for error and 0 if found. */
-int restore_file();
+int 
+restore_file();
 
 /*@description:Function to get specific block from specified position 
 @in: int pos-position of block,
 @out: char*
 @return: block */
-char* get_block(int pos);
+char* 
+get_block(int pos);
