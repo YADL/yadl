@@ -8,18 +8,10 @@ int
 delete_file()
 {
     
-        int fd_cat      =       -1;
-        int ret	        =       -1;
+     	int ret	        =       -1;
         int status      =       -1;
         char *filename  =       NULL;
-    
-        filename=(char*)calloc(1,FILE_SIZE);
-        fd_cat =open("filecatalog.txt",O_RDONLY); 
-        if (fd_cat< 1)
-        {
-                fprintf(stderr,"%s\n",strerror(errno));
-                goto out;
-        }
+    	filename=(char*)calloc(1,FILE_SIZE);
         printf("\n deduped files are\n");
         ret=readfilecatalog();
         if (ret== -1)
@@ -45,3 +37,5 @@ out:
 return ret;
 
 }
+
+
