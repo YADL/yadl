@@ -26,6 +26,13 @@ AC_SUBST(LIBTOOL_DEPS)
 # Check whether some low-level functions/files are available
 AC_HEADER_STDC
 
+# Check libraries
+AC_CHECK_LIB([crypto], [MD5], , AC_MSG_ERROR([OpenSSL crypto library is required to build]))
+
+# Check headers
+
+AC_PREFIX_DEFAULT(/usr)
+
 # If pkg-config
 AC_CHECK_PROG(PKG_CONFIG, pkg-config, yes)
 AM_CONDITIONAL([HAVE_PKG_CONFIG], [test "x$PKG_CONFIG" != "x"])

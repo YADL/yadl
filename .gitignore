@@ -16,6 +16,8 @@ src/.deps/
 src/.libs/
 src/config.h
 src/config.h.in
+src/config.h.in~
+src/yadl_dedup
 *.o
 *.la
 *.lo
