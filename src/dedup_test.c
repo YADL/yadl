@@ -14,5 +14,5 @@ int main(void) {
         unit_test(null_test_success),
     };
 
-    return run_tests(tests, "delete_test");
+    return run_tests(tests, "dedup_test");
 }
