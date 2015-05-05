@@ -28,10 +28,7 @@ AC_HEADER_STDC
 
 # Check libraries
 AC_CHECK_LIB([crypto], [MD5], , AC_MSG_ERROR([OpenSSL crypto library is required to build]))
-
-# Check headers
-
-AC_PREFIX_DEFAULT(/usr)
+PKG_CHECK_MODULES([UNITTEST], [cmockery2], , AC_MSG_ERROR([cmockery2 library is required to build]))
 
 # If pkg-config
 AC_CHECK_PROG(PKG_CONFIG, pkg-config, yes)
@@ -39,6 +36,10 @@ AM_CONDITIONAL([HAVE_PKG_CONFIG], [test "x$PKG_CONFIG" != "x"])
 AS_IF([test "x$PKG_CONFIG" != "x"], [
     AC_CONFIG_FILES([yadl.pc])
 ])
+
+# Check headers
+
+AC_PREFIX_DEFAULT(/usr)
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile])
