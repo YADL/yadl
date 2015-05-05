@@ -37,7 +37,7 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
         filename1 = basename(ts2);
         sprintf(dir,"%s/",dir);
         sprintf(temp_name,"%sDedup_%s",dir,filename1);
-        fd_input =open(filename,O_APPEND|O_CREAT|O_RDWR);
+        fd_input =open(filename,O_APPEND|O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
         if (fd_input< 1)
         {
                 fprintf(stderr,"%s\n",strerror(errno));
@@ -53,7 +53,7 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                 printf("\nfile is already deduped");
                 goto out;
         }
-        fd_stub =open(temp_name,O_APPEND|O_CREAT|O_RDWR);
+        fd_stub =open(temp_name,O_APPEND|O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
         if (fd_stub< 1)
         {
                 fprintf(stderr,"%s\n",strerror(errno));
