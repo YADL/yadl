@@ -1,3 +1,4 @@
+#include "clean_buff.h"
 #include "delete.h"
 
 /*Function to delete file from a directory.

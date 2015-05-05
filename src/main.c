@@ -1,4 +1,10 @@
 #include "main.h"
+#include "catalog.h"
+#include "block.h"
+#include "hash.h"
+#include "dedup.h"
+#include "restore.h"
+#include "delete.h"
 
 /*Main program!*/
 int
@@ -10,9 +16,7 @@ main ( int argc, char *argv[] )
         char *filename      =       NULL;
         int ch              =       0;
         int block_size      =       0;
-        int fd_cat          =       -1;
         int ret             =       -1;
-        char c;
         
         filename=(char*)calloc(1,FILE_SIZE);
         ret=init_block_store();

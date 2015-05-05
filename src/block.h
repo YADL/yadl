@@ -28,7 +28,6 @@ struct block_store
 	size_t fd_block;
 };
 
-static struct block_store fd;
 
 /*@description:Function to create blockstore
 @in: void

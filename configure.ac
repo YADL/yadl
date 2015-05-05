@@ -1,4 +1,4 @@
-
+# Set CFLAGS
 AC_PREREQ(2.57)
 
 AC_INIT([yadl], [0.1], [josferna@redhat.com])
@@ -7,6 +7,7 @@ AC_GNU_SOURCE
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 AC_CONFIG_HEADERS(src/config.h)
 AC_PROG_CC
+CFLAGS="$CFLAGS -Wall -Werror"
 
 # Check if CC is linked to CLANG
 AC_MSG_CHECKING([if compiling with clang])
@@ -39,6 +40,7 @@ AS_IF([test "x$PKG_CONFIG" != "x"], [
 
 # Check headers
 
+AC_SUBST(CFLAGS)
 AC_PREFIX_DEFAULT(/usr)
 
 AC_CONFIG_FILES([Makefile

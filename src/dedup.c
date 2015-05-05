@@ -1,7 +1,22 @@
 #include "dedup.h"
+#include "clean_buff.h"
 #include "main.h"
 #define NAME_SIZE 100
 
+// From catalog.h
+int comparepath(char out[]);
+
+// Prototypes
+
+/*@description:Function to check whether hash is already present or not.
+@in: char *out-input hash
+@out: int hash
+@return: -1 for error and 0 if hash already present */
+int searchhash(char *out);
+int get_next_chunk(int fd_input,int chunk_type,
+        int block_size,char** buffer, int *length);
+int chunk_store(char *buff,char *hash,int length,
+        int h_length,int e_offset, int b_offset,int fd_stub);
 /*
 Function to dedup a file whose path is specified by the user.
 Input:char* filename,int chunk_type,int hash_type,int block_size
@@ -13,15 +28,12 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
 
         int ret                 =       -1;
         int fd_input            =       -1;
-        int fd_cat              =       -1;
         int fd_stub             =       -1;
         int length              =       0;
         int h_length            =       0;
         int b_offset            =       0;
         int e_offset            =       0;
         int size                =       0;
-        int size1               =       0;
-        char* buff              =       NULL;
         char* hash              =       NULL;
         char* ts1               =       NULL;
         char* ts2               =       NULL;
@@ -170,7 +182,6 @@ chunk_store(char *buff,char *hash,int length,int h_length,int e_offset,
 int b_offset,int fd_stub)
 {
         
-        int fd_block            =       -1;
         int off	                =       -1;
         int ret	                =       -1;
 

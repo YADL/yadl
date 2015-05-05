@@ -25,17 +25,19 @@
 #include<openssl/sha.h>
 #endif
 
+/*
+Function to dedup a file whose path is specified by the user.
+Input:char* filename,int chunk_type,int hash_type,int block_size
+Output:int
+*/
+int
+dedup_file (char* filename,int chunk_type,int hash_type,int block_size);
+
 /*@description:Function to get hash of a particular block.
 @in: char *buffer-block contents strored in buffer,int length-length of buffer,int hash_type-type of hash(sha1 or md5)
 @out: char** hash-hash generated from a block,int *h_length-length of hash generated
 @return: hash */
 int get_hash(char *buffer,int length,int hash_type,char** hash,int *h_length);
-
-/*@description:Function to check whether hash is already present or not.
-@in: char *out-input hash
-@out: int hash
-@return: -1 for error and 0 if hash already present */
-int searchhash(char *out);
 
 /*@description:Function to insert hash to hashstore
 @in: char *buff-buffer that contains hash,int offset-starting position of block
