@@ -24,7 +24,6 @@
 #define NAME_SIZE 100
 #define int_size sizeof(int)
 
-static int fd_hash;
 /*@description:Function to create hashstore
 @in: void
 @out: int 

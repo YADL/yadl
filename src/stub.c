@@ -1,4 +1,5 @@
 #include "stub.h"
+#include "clean_buff.h"
 
 /*
  * Function to write contents to a stub file.
@@ -51,7 +52,6 @@ searchstubhash(int fd_stub,int b_offset,int e_offset)
         int    size             =               0;
         size_t  length          =               0;
         int     ret             =              -1;
-        int     flag            =               1;
         int eset                =               0;
         int bset                =               0;
         char*   buffer          =               NULL;

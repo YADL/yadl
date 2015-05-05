@@ -1,4 +1,6 @@
 #include "restore.h"
+#include "catalog.h"
+#include "clean_buff.h"
 
 /*Function to enter a filename that has to be restored.
 Input:void
@@ -8,7 +10,6 @@ int
 restore_file()
 {
         
-        int fd_cat      =       -1;
         int ret         =       -1;
         char* path      =       NULL;
         
@@ -20,7 +21,9 @@ restore_file()
         }
         path=(char*)calloc(1,FILE_SIZE);
         out4:printf("\nEnter the exact and full path of dedup file to be restored\n");
-                scanf("%s",path);
+                if (scanf("%s",path) <=0) {
+                    goto out4;
+                }
                 ret=comparepath(path);
                 if (ret== -1)
                 {
@@ -51,25 +54,19 @@ int
 restorefile(char* path)
 {
         
-        int status              =       0;
         int ret                 =      -1;
         char temp_name[NAME_SIZE]    =               "";
-        int l                   =       0;
-        char *ssc               =       NULL;
         int size                =       0;
         int size1               =       0;
         int     pos             =       0;
         char* buffer            =       NULL;
         char* buffer2           =       NULL;
-        char* ptr               =       NULL;
         int length              =       0;
         int sd1	                =       -1;
-        int    fd_block         =       -1;
         struct stat             st;
         int bset                =       0;
         int eset                =       0;
         int fd2	                =       -1;
-        char actualpath [PATH_MAX+1];
         char* ts1               =       NULL;
         char* ts2               =       NULL;
         char* dir               =       NULL;
@@ -85,7 +82,7 @@ restorefile(char* path)
         printf("\npath%s",path);
         printf("%s\n",filename1);
         printf("\n%s\n",temp_name);
-        sd1 = open(temp_name,O_RDONLY);
+        sd1 = open(temp_name,O_RDONLY, S_IRUSR|S_IWUSR);
         if (sd1< 1)
         {
                 fprintf(stderr,"%s\n",strerror(errno));
@@ -98,7 +95,7 @@ restorefile(char* path)
 
         fstat(sd1, &st);
         size = st.st_size;
-        fd2 = open(path,O_CREAT|O_RDWR);
+        fd2 = open(path,O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
         if (fd2< 1)
         {
                 fprintf(stderr,"%s\n",strerror(errno));
