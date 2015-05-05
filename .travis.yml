@@ -5,4 +5,4 @@ compiler:
 before_install:
     - bash .travis_cmockery2.sh
 script:
-    - cd test_program && make
+    - ./autogen.sh && ./configure && make check

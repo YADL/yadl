@@ -1,3 +1,4 @@
+#include "clean_buff.h"
 #include "delete.h"
 
 /*Function to delete file from a directory.
@@ -28,7 +29,7 @@ delete_file()
                 goto out;
         }
         printf("\nSelect the file you want to delete\n");
-        scanf("%s",filename);
+        while (scanf("%s",filename) <= 0);
         printf("\nFILE%s",filename);
         status = remove(filename);
         if( status== 0 )

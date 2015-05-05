@@ -15,4 +15,4 @@ int readfilecatalog();
 @in: void
 @out: int 
 @return: -1 for error and 0 if read successfully */
-int deletefile();
+int delete_file();

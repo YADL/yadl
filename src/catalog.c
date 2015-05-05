@@ -1,4 +1,14 @@
 #include "catalog.h"
+#include "clean_buff.h"
+
+// Globals
+static size_t fd_cat;
+
+/*@description:Function to check whether path is present or not
+@in: char out[]-path,int filedes-file descriptor of file
+@out: int 
+@return: -1 for error and 0 if found. */
+int searchpath(char out[]);
 
 /*Function to create catalog file.
 Input:void
@@ -9,7 +19,7 @@ init_catalog_store()
         
         int ret         =       -1;
 
-        fd_cat =open("filecatalog.txt",O_APPEND|O_CREAT|O_RDWR);
+        fd_cat =open("filecatalog.txt",O_APPEND|O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
         if (fd_cat< 1)
         {
                 fprintf(stderr,"%s\n",strerror(errno));
@@ -34,7 +44,7 @@ writecatalog(char* filename)
         char *real_path	        =       NULL;
         int size_of_real_path   =       0;
         
-        if (filename== "")
+        if (filename== '\0' || filename == NULL)
         {
                 goto out;
         }
@@ -108,7 +118,7 @@ readfilecatalog()
                 buffer[length]='\0';
                	printf("%s\n",buffer);
                 size-=(length+int_size);
-                memset(buffer,0,sizeof(buffer));
+                memset(buffer,0,length+1);
                 clean_buff(&buffer);
                 ret=1;
         }
@@ -130,7 +140,6 @@ comparepath(char out[])
         int     size    =               0;
         size_t  length  =               0;
         int     ret     =               -1;
-        int     flag    =               1;
         char*   buffer  =               NULL;
         
         fstat(fd_cat, &st);
@@ -172,7 +181,7 @@ comparepath(char out[])
                         break;
                 }
                 size-=(length+int_size);
-                memset(buffer,0,sizeof(buffer));
+                memset(buffer,0,length+1);
                 clean_buff(&buffer);
                 ret=1;
         }
