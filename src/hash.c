@@ -1,4 +1,7 @@
 #include "hash.h"
+#include "clean_buff.h"
+
+static int fd_hash;
 
 /*Function to create hash for a given block
 Input:void
@@ -9,7 +12,7 @@ init_hash_store()
         
         int ret         =       -1;
         
-        fd_hash = open("filehashDedup.txt",O_APPEND|O_CREAT|O_RDWR);
+        fd_hash = open("filehashDedup.txt",O_APPEND|O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
         if (fd_hash == -1)
         {
         printf("\nCreation of hash file failed with error [%s]\n",
@@ -69,7 +72,6 @@ searchhash(char *out)
         int     size            =               0;
         size_t  length          =               0;
         int     ret             =               -1;
-        int     flag            =               1;
         int offset              =               0;
         char*   buffer          =               NULL;
         
@@ -136,10 +138,8 @@ getposition(char* hash)
         int     size    =       0;
         size_t  length  =       0;
         int     ret     =       -1;
-        int     flag    =       1;
         int     offset  =       0;
         char*   buffer  =       NULL;
-        char* hash1     =       NULL;
         int h_length    =       0;
         
         fstat(fd_hash, &st);

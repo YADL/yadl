@@ -24,7 +24,6 @@
 #define NAME_SIZE 100
 #define int_size sizeof(int)
 
-static size_t fd_cat;
 
 /*@description:Function to create catalogstore
 @in: void
@@ -37,12 +36,6 @@ int init_catalog_store();
 @out: int 
 @return: -1 for error and 0 if inserted successfully */
 int writecatalog(char* filename);
-
-/*@description:Function to check whether path is present or not
-@in: char out[]-path,int filedes-file descriptor of file
-@out: int 
-@return: -1 for error and 0 if found. */
-int searchpath(char out[]);
 
 /*@description:Function to read all deduped files from a catalog file.
 @in: void

@@ -1,4 +1,10 @@
 #include "main.h"
+#include "catalog.h"
+#include "block.h"
+#include "hash.h"
+#include "dedup.h"
+#include "restore.h"
+#include "delete.h"
 
 /*Main program!*/
 int
@@ -10,9 +16,7 @@ main ( int argc, char *argv[] )
         char *filename      =       NULL;
         int ch              =       0;
         int block_size      =       0;
-        int fd_cat          =       -1;
         int ret             =       -1;
-        char c;
         
         filename=(char*)calloc(1,FILE_SIZE);
         ret=init_block_store();
@@ -37,13 +41,13 @@ main ( int argc, char *argv[] )
                 printf("3.delete a file\n");
                 printf("4.Exit\n");
                 printf("Enter your choice\n");
-                scanf("%d" ,&ch);
+                while (scanf("%d" ,&ch) <= 0);
 
         switch(ch)
         {
         case 1:
                 printf("\nPlease give filename with the full path\n");
-                scanf("%s",filename);
+                while (scanf("%s",filename) <= 0);
                 ret=file_exist(filename);
                 if (ret== 0)
                 {
@@ -69,7 +73,7 @@ main ( int argc, char *argv[] )
                 }
                 printf("\nEnter block size\n");
                 printf("For variable chunking block size should be zero\n");
-                scanf("%d",&block_size);
+                while(scanf("%d",&block_size) <= 0);
                 printf("\nChoose algorithm to hash\n");
                 printf("1.md5 2.sha1\n");
                 while(scanf("%d",&hash_type))

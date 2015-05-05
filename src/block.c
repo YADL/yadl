@@ -1,4 +1,6 @@
 #include "block.h"
+#include "clean_buff.h"
+static struct block_store fd;
 
 /*Function to create block file.
 Input:void
@@ -9,7 +11,7 @@ init_block_store()
         
         int ret         =       -1;
 
-        fd.fd_block =open("blockstore.txt",O_APPEND|O_CREAT|O_RDWR);
+        fd.fd_block =open("blockstore.txt",O_APPEND|O_CREAT|O_RDWR, S_IWUSR|S_IRUSR);
         if (fd.fd_block == -1)
         {
                 printf("\nCreation of block file failed with error [%s]\n",
@@ -130,7 +132,7 @@ get_block(int pos)
 out:
         if (ret== -1)
         {
-                memset(buffer,0,sizeof(buffer));
+                memset(buffer,0,length+1);
         }
         return buffer;
 
