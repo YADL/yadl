@@ -3,6 +3,7 @@
 #include<fcntl.h>  
 #include<stdlib.h> 
 #include<errno.h> 
+#include<error.h>
 #include<sys/stat.h>
 
 #define PRIME 27

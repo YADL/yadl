@@ -1,5 +1,6 @@
 #include "Rabin_Karp.h"
 
+
 /*Function to clean buffer contents.
 Input:
         char** buffer   : Buffer to be cleaned
@@ -9,13 +10,11 @@ Output:
 inline void 
 clean_buff(char** buffer)
 {
-        
-        if( *buffer != NULL )
+        if( *buffer != NULL && !buffer)
         {
                 free(*buffer);
                 *buffer = NULL;  
         }
-
 }
 
 /*Function to check whether file is existing or not.
@@ -78,6 +77,9 @@ variable_chunking (char *filename)
 {
         int ret         =       -1;
         int fd          =       0;
+        int fd_copy     =       0;
+        int temp        =       0;
+        FILE *fp        =       NULL;
 
         char*   buffer                  =       NULL;
         char*   temp_buffer             =       NULL;
@@ -93,17 +95,32 @@ variable_chunking (char *filename)
         ssize_t slide_incr              =       0;
         ssize_t remaining_length        =       0;
         ssize_t remaining_content_incr  =       0;
-        ssize_t remaining_content_count =       0;
         ssize_t size                    =       0;
         ssize_t chunk_size              =       0;
         ssize_t buffer_length           =       0;
 
         struct stat st;
+        mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP|S_IROTH;
 
-        fd = open (filename,O_RDONLY);
+        fd      = open (filename,O_RDONLY);
         if (fd < 0) 
         {
                 fprintf (stderr, "Cannot open file\n");
+                goto out;
+        }
+
+        fd_copy     = open("./test_data_copy.txt",
+        O_WRONLY | O_CREAT| O_RDONLY,mode);
+        if (fd_copy < 0) 
+        {
+                fprintf (stderr, "Error in creating file test_data_copy.txt\n");
+                goto out;
+        }
+
+        fp      = fopen("./Rabin_Karp.csv","w+");
+        if(fp==NULL)
+        {
+                printf("Error in creating file Rabin_Karp.csv\n");
                 goto out;
         }
 
@@ -111,7 +128,7 @@ variable_chunking (char *filename)
         size = st.st_size;
         while (size > 0) 
         {
-                if(size < buffer_length)
+                if(size < BUFFER_LEN)
                         buffer_length = size;
                 else
                         buffer_length = BUFFER_LEN;
@@ -125,43 +142,52 @@ variable_chunking (char *filename)
                 }
 
                 ret = read (fd, buffer, buffer_length);
-
                 if(ret < 0)
                 {
                         fprintf (stderr, "Reading failed\n");
                         ret     =-1;
                         goto out;
                 }
-
                 buffer[buffer_length+1]='\0';
 
                 wstart                  =       0;
                 start                   =       0;
                 slide_incr              =       0;
                 end                     =       N;
-                remaining_content_incr  =       0;
 
+                /*If there is remaining content in previous buffer, set the end 
+                 pointer of new buffer and remaining_content_incr according to 
+                 the window size*/
                 if( remaining_length > 0 && remaining_content_incr < N )
                 {
-                        end                     =       1;
-                        remaining_content_incr  =       1;
-
                         if(remaining_length<=N)
-                                remaining_content_count = remaining_length;
+                        {
+                                end = N - remaining_length;
+                                remaining_content_incr  = N;
+                        }
                         else
-                                remaining_content_count = 1;
+                        {
+                                end = 1;
+                                remaining_content_incr  = 1;
+                        }
                 }
 
-                temp_buffer = (char*)calloc(1,N+1);
-                if(temp_buffer == NULL)
-                {
-                        fprintf (stderr, "Error in buffer allocation\n");
-                        ret     =-1;
-                        goto out;
-                }
-
+                /*Loops until the end of the buffer, matches the hash with 
+                 fingerprint. If match is successful then write chunks to 
+                 file and length of chunk to .csv file*/
                 while(end < buffer_length)
                 {
+                        temp_buffer = (char*)calloc(1,N+1);
+                        if(temp_buffer == NULL)
+                        {
+                                fprintf (stderr,"Error in buffer allocation\n");
+                                ret     =-1;
+                                goto out;
+                        }
+
+                        /*Creates the temp_buffer with previous buffers 
+                         remaining content and requried amount of data 
+                         from current buffer*/
                         if( remaining_length > 0 && remaining_content_incr < N 
                         && remaining_content_incr != 0 )
                         {
@@ -175,10 +201,12 @@ variable_chunking (char *filename)
                                         remaining_content_incr, 
                                         N - remaining_content_incr);
 
-                                memcpy(temp_buffer + (N-remaining_content_incr), 
-                                buffer + wstart, remaining_content_count);
+                                memcpy(temp_buffer + (N-end), 
+                                buffer + wstart, end);
                                 remaining_content_incr++;
                         }
+                        /*Creates the temp_buffer of window size 
+                         from current buffer*/
                         else
                         {
                                 memcpy (temp_buffer, buffer + wstart, N);
@@ -192,15 +220,17 @@ variable_chunking (char *filename)
                                 "Error calculating rolling hash!! \n" );
                                 goto out;
                         }
-
-                        memset(temp_buffer,0,sizeof(temp_buffer));
+                        
+                        clean_buff(&temp_buffer);
 
                         if ( (hash & FINGER_PRINT) == 0 ) 
                         {
+                                /*Generates the chunk by combining previous 
+                                 buffer content with current buffer content upto 
+                                 where the fingerprint is matched*/
                                 if( remaining_content_incr != 0 )
                                 {
-                                        chunk_size = N + slide_incr + 
-                                        remaining_length;
+                                        chunk_size = remaining_length + end;
                                         chunk_buffer = (char*)calloc
                                         (1,chunk_size+1);
                                         if(chunk_buffer == NULL)
@@ -215,14 +245,15 @@ variable_chunking (char *filename)
                                         remaining_buffer_content, 
                                         remaining_length);
                                         memcpy (chunk_buffer + remaining_length, 
-                                        buffer, end);
+                                        buffer + start, end);
 
-                                        remaining_content_count = 0;
                                         remaining_content_incr  = 0;
-
-                                        clean_buff(&remaining_buffer_content);
+                                        remaining_length        = 0;
                                         clean_buff(&remaining_window_content);
+                                        clean_buff(&remaining_buffer_content);
                                 }
+                                /*Generates the chunk from previous chunk 
+                                 boundary to where the fingerprint is matched*/
                                 else
                                 {
                                         chunk_size = N+slide_incr;
@@ -241,15 +272,19 @@ variable_chunking (char *filename)
                                 }
 
                                 chunk_buffer[chunk_size+1]='\0';
+                                ret = write(fd_copy,chunk_buffer,
+                                strlen(chunk_buffer));
+                                ret = fprintf(fp,"%d,",strlen(chunk_buffer));
 
-                                printf("Chunk\n%s\n\n",chunk_buffer);
+                                clean_buff(&chunk_buffer);
 
                                 slide_incr      = 0;
                                 start           = end;
                                 wstart          = end;
                                 remaining_length= buffer_length - end;
                                 end             += N;
-                        } 
+
+                        }
                         else
                         {
                                 end++;
@@ -258,8 +293,8 @@ variable_chunking (char *filename)
                         }
                 }
 
-                clean_buff(&temp_buffer);
-
+                /*Keeps track of remaining buffers content which is not matched 
+                 with fingerprint*/
                 if(remaining_length > 0)
                 {
                         remaining_buffer_content = (char*)calloc(1,
@@ -271,7 +306,6 @@ variable_chunking (char *filename)
                                 ret     =-1;
                                 goto out;
                         }
-
                         memcpy (remaining_buffer_content, buffer + start, 
                         remaining_length);
                         remaining_buffer_content[remaining_length+1]='\0';
@@ -295,20 +329,28 @@ variable_chunking (char *filename)
 
                 size -= buffer_length;
 
+                /*If buffer content is not matched with fingerprint and it has 
+                 reached end of file, consider remaining buffer content as 
+                 chunk*/
                 if(size==0 && remaining_length > 0)
                 {
-                        printf("Chunk\n%s\n\n",remaining_buffer_content);
+                        ret = write(fd_copy,remaining_buffer_content,
+                        strlen(remaining_buffer_content));
+                        ret = fprintf(fp,"%d",strlen(remaining_buffer_content));
+                        clean_buff(&remaining_buffer_content);
                 }
-                if(size > buffer_length)
-                        clean_buff(&buffer);
+                clean_buff(&buffer);
         }
 
-        clean_buff(&buffer);
         ret = 0;
 
 out:
         if (fd != -1)
                 close(fd);
+        if (fd != -1)
+                close(fd_copy);
+        if ( fp != NULL)
+                fclose(fp);
 
         return ret;
 }
