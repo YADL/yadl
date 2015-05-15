@@ -13,7 +13,7 @@ clean_buff(char** buffer)
         if( *buffer != NULL && !buffer)
         {
                 free(*buffer);
-                *buffer = NULL;  
+                *buffer = NULL;
         }
 }
 
@@ -26,7 +26,7 @@ Output:
 int 
 file_exist (char *filename)
 {
-        struct stat   st;   
+        struct stat   st;
         return (stat (filename, &st) == 0);
 }
 
@@ -51,7 +51,7 @@ calc_hash (char *buffer, ssize_t length, int *ret)
         if( buffer == NULL || length < 0 )
         {
                 *ret    =-1;
-                return;
+                return   -1;
         }
 
         for(i=0;i<length;i++)
@@ -78,7 +78,6 @@ variable_chunking (char *filename)
         int ret         =       -1;
         int fd          =       0;
         int fd_copy     =       0;
-        int temp        =       0;
         FILE *fp        =       NULL;
 
         char*   buffer                  =       NULL;
@@ -113,7 +112,8 @@ variable_chunking (char *filename)
         O_WRONLY | O_CREAT| O_RDONLY,mode);
         if (fd_copy < 0) 
         {
-                fprintf (stderr, "Error in creating file test_data_copy.txt\n");
+                fprintf (stderr, 
+                "Error in creating file test_data_copy.txt\n");
                 goto out;
         }
 
@@ -136,7 +136,7 @@ variable_chunking (char *filename)
                 buffer = (char*)calloc(1,buffer_length+1);
                 if(buffer == NULL)
                 {
-                        fprintf (stderr, "Error in buffer allocation\n");
+                        fprintf (stderr,"Error in buffer allocation\n");
                         ret     =-1;
                         goto out;
                 }
@@ -155,9 +155,9 @@ variable_chunking (char *filename)
                 slide_incr              =       0;
                 end                     =       N;
 
-                /*If there is remaining content in previous buffer, set the end 
-                 pointer of new buffer and remaining_content_incr according to 
-                 the window size*/
+                /*If there is remaining content in previous buffer, 
+                set the end pointer of new buffer and 
+                remaining_content_incr according to the window size*/
                 if( remaining_length > 0 && remaining_content_incr < N )
                 {
                         if(remaining_length<=N)
@@ -172,15 +172,16 @@ variable_chunking (char *filename)
                         }
                 }
 
-                /*Loops until the end of the buffer, matches the hash with 
-                 fingerprint. If match is successful then write chunks to 
-                 file and length of chunk to .csv file*/
+                /*Loops until the end of the buffer, matches the hash 
+                 with fingerprint. If match is successful then write 
+                chunks to file and length of chunk to .csv file*/
                 while(end < buffer_length)
                 {
                         temp_buffer = (char*)calloc(1,N+1);
                         if(temp_buffer == NULL)
                         {
-                                fprintf (stderr,"Error in buffer allocation\n");
+                                fprintf (stderr,
+                                "Error in buffer allocation\n");
                                 ret     =-1;
                                 goto out;
                         }
@@ -188,7 +189,8 @@ variable_chunking (char *filename)
                         /*Creates the temp_buffer with previous buffers 
                          remaining content and requried amount of data 
                          from current buffer*/
-                        if( remaining_length > 0 && remaining_content_incr < N 
+                        if( remaining_length > 0 && 
+                        remaining_content_incr < N 
                         && remaining_content_incr != 0 )
                         {
                                 if(remaining_length <= N)
@@ -209,7 +211,7 @@ variable_chunking (char *filename)
                          from current buffer*/
                         else
                         {
-                                memcpy (temp_buffer, buffer + wstart, N);
+                                memcpy (temp_buffer,buffer + wstart, N);
                         }
 
                         temp_buffer[N+1] = '\0';
@@ -225,12 +227,14 @@ variable_chunking (char *filename)
 
                         if ( (hash & FINGER_PRINT) == 0 ) 
                         {
-                                /*Generates the chunk by combining previous 
-                                 buffer content with current buffer content upto 
-                                 where the fingerprint is matched*/
+                                /*Generates the chunk by combining 
+                                 previous buffer content with current 
+                                buffer content upto where the 
+                                fingerprint is matched*/
                                 if( remaining_content_incr != 0 )
                                 {
-                                        chunk_size = remaining_length + end;
+                                        chunk_size = remaining_length + 
+                                        end;
                                         chunk_buffer = (char*)calloc
                                         (1,chunk_size+1);
                                         if(chunk_buffer == NULL)
@@ -274,7 +278,20 @@ variable_chunking (char *filename)
                                 chunk_buffer[chunk_size+1]='\0';
                                 ret = write(fd_copy,chunk_buffer,
                                 strlen(chunk_buffer));
-                                ret = fprintf(fp,"%d,",strlen(chunk_buffer));
+                                if(ret == -1)
+                                {
+                                    fprintf (stderr,
+                                    "Error in writing chunks to file\n");
+                                    goto out;
+                                }
+                                ret = fprintf(fp,"%lu,",strlen(chunk_buffer));
+                                if(ret < 0)
+                                {
+                                    fprintf (stderr,
+                                    "Error in writing chunks size to file\n");
+                                    ret     =-1;
+                                    goto out;
+                                }
 
                                 clean_buff(&chunk_buffer);
 
@@ -336,7 +353,21 @@ variable_chunking (char *filename)
                 {
                         ret = write(fd_copy,remaining_buffer_content,
                         strlen(remaining_buffer_content));
-                        ret = fprintf(fp,"%d",strlen(remaining_buffer_content));
+                        if(ret == -1)
+                        {
+                                fprintf (stderr,
+                                "Error in writing chunks to file\n");
+                                goto out;
+                        }
+                        ret = fprintf(fp,
+                        "%lu",strlen(remaining_buffer_content));
+                        if(ret == -1)
+                        {
+                                fprintf (stderr,
+                                "Error in writing chunks to file\n");
+                                ret     =-1;
+                                goto out;
+                        }
                         clean_buff(&remaining_buffer_content);
                 }
                 clean_buff(&buffer);

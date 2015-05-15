@@ -1,5 +1,5 @@
 
-SUBDIRS = src
+SUBDIRS = src rabin_karp
 
 if HAVE_PKG_CONFIG
 pkgconfigdir = $(libdir)/pkgconfig

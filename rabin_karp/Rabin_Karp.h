@@ -5,6 +5,7 @@
 #include<errno.h> 
 #include<error.h>
 #include<sys/stat.h>
+#include<unistd.h>
 
 #define PRIME 27
 #define N 128
