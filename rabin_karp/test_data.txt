@@ -1,0 +1,387 @@
+Clash of Clans has received generally positive reviews. The iOS version holds an aggregate score of 74 out of 100 on Metacritic,[13] and 80.00% on GameRankings.[12]734524632 23657236 346247264374 23462 374364 53274 324632547365432743274  4732654374653274618824624 234238942342389739847  42937938742938479328743947347326746374 6472438947923479027287264726527469292 926423970234723847872394792932847237423  293847398479328472397 734932
+
+Gamezebo's Leif Johnson was impressed, scoring the game 4.5sdvbfsdmnfbdsmnfbdsmnfbdsmnfbdsmnf out of 5. Although he felt the gameplay was heavily skewed to encourage the player to purchase gems, he praised the 734524632 23657236 346247264374 23462 374364 53274 324632547365432743274  4732654374653274618824624 234238942342389739847  42937938742938479328743947347326746374 6472438947923479027287264726527469292 926423970234723847872394792932847237423  293847398479328472397 734932addition of a single-player campaign. He concluded that "Clash of Clans is a simple game, but that's more of a strength than a weakness. It's simple enough to provide quick, painless matches on an iPhone in an idle moment, and there are enough different units to choose from in the battle mode to make playing against other players endlessly rewarding. Best of all, the option to fight against NPC goblins gives Clash of Clans a small edge over similar strategy games that rely almost entirely on player-versus-player combat."[5]
+
+#include "Rabin_Karp.h"
+
+/*Function to clean buffer contents.
+Input:
+        char** buffer   : Buffer to be cleaned
+Output:
+        void
+*/
+inline void 
+clean_buff(char** buffer)
+{
+        if( *buffer != NULL )
+        {
+                free(*buffer);
+                *buffer = NULL;  
+        }
+}
+
+Pocket Gamer's Peter Willington was equally impressed, scoring the game 9 out of 10 and giving it a "Gold Award". Reviewing the game several months after it was released for iOS devices, Willington praised the game for requiring real strategy to play. He wrote that the gameplay was built on the progression of "requiring more and more sophisticated units, 734524632 23657236 346247264374 23462 374364 53274 324632547365432743274  4732654374653274618824624 234238942342389739847  42937938742938479328743947347326746374 6472438947923479027287264726527469292 926423970234723847872394792932847237423  293847398479328472397 734932asking you to strategise and really think about which elements you should focus on building within your camp." He concluded that "Clash of Clans is a superb game, freemium or otherwise, with more nuance than most give it credit for. That's why it's passed the test of time since its launch and still has an active community devotedly constructing elaborate fortresses in the hope of becoming invincible."[6]
+
+/*Function to check whether file is existing or not.
+Input:
+        char* filename  : Name of the file to be checked 
+Output:
+        int             : 0 on success, -1 on failure
+*/
+int 
+file_exist (char *filename)
+{
+        struct stat   st;   
+        return (stat (filename, &st) == 0);
+}
+
+/*Function to find the rolling hash of a particular window.
+Input:
+        char* buffer            : Buffer to store window content
+        ssize_t length          : Stores the length of the window
+        int *ret                : To return the status 0 on success, 
+                                -1 on failure
+Output:
+        y_uint32 hash_value     : Rolling hash of a particular window
+*/
+y_uint32
+calc_hash (char *buffer, ssize_t length, int *ret)
+{
+        int             i               =       0;
+        int             j               =       0;
+        int             n               =       0;
+        y_uint32        hash_value      =       0;
+        y_uint32        power           =       0;
+
+        if( buffer == NULL || length < 0 )
+        {
+                *ret    =-1;
+                return;
+        }
+
+        for(i=0;i<length;i++)
+        {
+                n       =       length - i;
+                power   =       1;
+                for(j=0;j<n;j++)
+                        power *= PRIME;
+                hash_value += (power * buffer[i]);
+        }
+        *ret = 0;
+        return hash_value;
+}
+
+/*Function to generate variable size chunk using rabin-karp.
+Input:
+        char* filename  : Name of the file to be chunked 
+Output:
+        int             : 0 on success, -1 on failure
+*/
+
+148App's Rob Rich scored the game 3.5 out of 5, writing "It's great to play an online freemium game that doesn't shy away from the single-player experience but also offers up some honest-to-goodness direct interaction, which is a very rare combination these days. It probably won't warm the hearts of any haters out there, but it does give genre fans something with a bit more action and strategy than they might be used to."[7]
+
+ while(end < buffer_length && buffer_length > N)
+                {
+                        if( remaining_length > 0 && remaining_content_incr < N 
+                        && remaining_content_incr != 0 )
+                        {
+                                if(remaining_length <= N)
+                                        memcpy (temp_buffer, 
+                                        remaining_buffer_content, 
+                                        remaining_length);
+                                else
+                                        memcpy (temp_buffer, 
+                                        remaining_window_content + 
+                                        remaining_content_incr, 
+                                        N - remaining_content_incr);
+
+                                memcpy(temp_buffer + (N-remaining_content_incr), 
+                                buffer + wstart, remaining_content_incr);
+                                remaining_content_incr++;
+                        }
+                        else
+                        {
+                                memcpy (temp_buffer, buffer + wstart, N);
+                        }
+
+                        temp_buffer[N+1] = '\0';
+                        hash = calc_hash (temp_buffer, N, &ret);
+                        if (ret == -1) 
+                        {
+                                fprintf (stderr, 
+                                "Error calculating rolling hash!! \n" );
+                                goto out;
+                        }
+
+                        memset(temp_buffer,0,N+1);
+
+                        if ( (hash & FINGER_PRINT) == 0 ) 
+                        {
+                                if( remaining_content_incr != 0 )
+                                {
+                                        chunk_size = remaining_length + end;
+                                        chunk_buffer = (char*)calloc
+                                        (1,chunk_size+1);
+                                        if(chunk_buffer == NULL)
+                                        {
+                                                fprintf (stderr, 
+                                                "Error in buffer allocation\n");
+                                                ret     =-1;
+                                                goto out;
+                                        }
+
+                                        memcpy (chunk_buffer, 
+                                        remaining_buffer_content, 
+                                        remaining_length);
+                                        memcpy (chunk_buffer + remaining_length, 
+                                        buffer, end);
+
+                                        remaining_content_incr  = 0;
+                                        remaining_length        = 0;
+
+                                }
+
+Modojo's John Bedford was less impressed, scoring the game 3 out of 5. He was critical of freemium gaming in general, writing "The novelty hasn't just worn off this particular style of greedy gaming, it's shriveled up and condensed itself into an infinitely dense singularity of self-loathing." Of the game itself, he concluded "This is a game that follows in the fo734524632 23657236 346247264374 23462 374364 53274 324632547365432743274  4732654374653274618824624 234238942342389739847  42937938742938479328743947347326746374 6472438947923479027287264726527469292 926423970234723847872394792932847237423  293847398479328472397 734932otsteps of no small number of titles that have made feverish demands on our wallets in exchange for just a slightly thicker slice of the gameplay. It's possible you have an unending appetite for these micromanagement titles, in which case we recommend getting heartily stuck into Supercell's latest game. While Clash of Clans brings something new to accompany its competent but unexceptional empire gameplay, for most of us it'll be a case of too little, too late."[14]The game has been very successful for Supercell. By April 2013, Supercell had only two games on the App Store, Clash of Clans and Hay Day, which together had grossed $279 million. Daily revenue was at $2.4 million,[15] with 8.5 million daily players, and Forbes projected a revenue of between $800 million and $1 billion by the end of 2013.[16][17] They ultimately earned $892 million (compared to $101 million in 2012).[18]
+
+                        memcpy (remaining_buffer_content, buffer + start, 
+                        remaining_length);
+                        remaining_buffer_content[remaining_length+1]='\0';
+
+                        if(remaining_length >= N)
+                        {
+                                remaining_window_content = (char*)calloc(1,N+1);
+                                if(remaining_window_content == NULL)
+                                {
+                                        fprintf (stderr, 
+                                        "Error in buffer allocation\n");
+                                        ret     =-1;
+                                        goto out;
+                                }
+
+                                memcpy (remaining_window_content, 
+                                buffer + wstart, remaining_length);
+                                remaining_window_content[N+1] = '\0';
+                        }
+                }
+
+                size -= buffer_length;
+
+                if(size==0 && remaining_length > 0)
+                {
+                        printf("Chunk\n%s\n\n",remaining_buffer_content);
+                        ret = write(fd1,remaining_buffer_content,strlen(remaining_buffer_content));
+                        ret = fprintf(fp,"%d",strlen(remaining_buffer_content));
+                }
+
+                clean_buff(&buffer);
+                scanf("%d",&temp);
+        }
+
+        ret = 0;
+
+out:
+        if (fd != -1)
+                close(fd); close(fd1);
+
+        return ret;
+}
+
+Clash of Clans became an App Store top 5 download between December 2012 and May 2013,[19] and this success has been described as helping to usher in a new era in conjoint gaming on mobile devices.[20][21] In 2013, Clash of Clans was the third highest game in revenue generated on the App Store and Google Play.[22]To earn and store gold and elixir, players must 734524632 23657236 346247264374 23462 374364 53274 324632547365432743274  4732654374653274618824624 234238942342389739847  42937938742938479328743947347326746374 6472438947923479027287264726527469292 926423970234723847872394792932847237423  293847398479328472397 734932build gold mines and gold storages and elixir collectors and elixir storages, respectively. Elixir is used to train new troops, carry out research in the laboratory to upgrade troops and to build and upgrade certain buildings, mostly pertaining to buildings used in attacking another player's base. Gold is used to build defensive buildings and to upgrade the town hall, which allows access to more buildings and higher levels for existing buildings.[6]
+
+There are a number of buildings available to the player to defend their community, including cannons, mortars, bombs, traps, archer towers, and wizard towers. Players can also build walls, which can be upgraded as they increase in levelClash of Clans has received generally positive reviews. The iOS version holds an aggregate score of 74 out of 100 on Metacritic,[13] and 80.00% on GameRankings.[12].
+
+Clash of Clans has received generally positive reviews. The iOS version holds an aggregate score of 74 out of 100 on Metacritic,[13] and 80.00% on GameRankings.[12]
+
+Gamezebo's Leif Johnson was impressed, scoring the game 4.5sdvbfsdmnfbdsmnfbdsmnfbdsmnfbdsmnf out of 5. Although he felt the gameplay was heavily skewed to encourage the player to purchase gems, he praised the addition of a single-player campaign. He concluded that "Clash of Clans is a simple game, but that's more of a strength than a weakness. It's simple 734524632 23657236 346247264374 23462 374364 53274 324632547365432743274  4732654374653274618824624 234238942342389739847  42937938742938479328743947347326746374 6472438947923479027287264726527469292 926423970234723847872394792932847237423  293847398479328472397 734932enough to provide quick, painless matches on an iPhone in an idle moment, and there are enough different units to choose from in the battle mode to make playing against other players endlessly rewarding. Best of all, the option to fight against NPC goblins gives Clash of Clans a small edge over similar strategy games that rely almost entirely on player-versus-player combat."[5]
+
+Pocket Gamer's Peter Willington was equally impressed, scoring the game 9 out of 10 and giving it a "Gold Award". Reviewing the game several months after it was released for iOS devices, Willington praised the game for requiring real strategy to play. He wrote that the gameplay was built on the progression of "requiring more and more sophisticated units, 734524632 23657236 346247264374 23462 374364 53274 324632547365432743274  4732654374653274618824624 234238942342389739847  42937938742938479328743947347326746374 6472438947923479027287264726527469292 926423970234723847872394792932847237423  293847398479328472397 734932asking you to strategise and really think about which elements you should focus on building within your camp." He concluded that "Clash of Clans is a superb game, freemium or otherwise, with more nuance than most give it credit for. That's why it's passed the test of time since its launch and still has an active community devotedly constructing elaborate fortresses in the hope of becoming invincible."[6]
+
+148App's Rob Rich scored the game 3.5 out of 5, writing "It's great to play an online freemium game that doesn't shy away from the single-player experience but also offers up some honest-to-goodness direct interaction, which is a very rare combination these days. It probably won't warm the hearts of any haters out there, but it does give genre fans something with a bit more action and strategy than they might be used to."[7]
+
+Modojo's John Bedford was less impressed, scoring the game 3 out of 5. He was critical of freemium gaming in general, writing "The novelty hasn't just worn off this particular style of greedy gaming, it's shriveled up and condensed itself into an infinitely dense singularity of self-loathing." Of the game itself, he concluded "This is a game that follows in the footsteps of no small number of titles that have made feverish demands on our wallets in exchange for just a slightly thicker slice of the int 
+variable_chunking (char *filename) 
+{
+        int ret         =       -1;
+        int fd          =       0;
+        int fd1         =       0;
+        int temp        =       0;
+        FILE *fp        =       NULL;
+
+        char*   buffer                  =       NULL;
+        char*   temp_buffer             =       NULL;
+        char*   chunk_buffer            =       NULL;
+        char*   remaining_buffer_content=       NULL;
+        char*   remaining_window_content=       NULL;
+
+        y_uint32 hash   =       0;
+
+        ssize_t start                   =       0;
+        ssize_t end                     =       0;
+        ssize_t wstart                  =       0;
+        ssize_t slide_incr              =       0;
+        ssize_t remaining_length        =       0;
+        ssize_t remaining_content_incr  =       0;
+        ssize_t size                    =       0;
+        ssize_t chunk_size              =       0;
+        ssize_t buffer_length           =       0;
+
+        struct stat st;
+        mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP|S_IROTH;
+
+        fd      = open (filename,O_RDONLY);
+        fd1     = open("./file.txt",O_WRONLY | O_CREAT| O_RDONLY,mode);
+        fp      = fopen("./Rabin_Karp.csv","w+");
+        if(fp==NULL)
+        {
+                printf("Error creating file Rabin_Karp.csv\n");
+                goto out;
+        }
+
+        if (fd < 0) 
+        {
+                fprintf (stderr, "Cannot open file\n");
+                goto out;
+        }
+
+        fstat(fd, &st);
+        size = st.st_size;
+        while (size > 0) 
+        {
+                if(size < BUFFER_LEN)
+                        buffer_length = size;
+                else
+                        buffer_length = BUFFER_LEN;
+
+                buffer = (char*)calloc(1,buffer_length+1);
+                if(buffer == NULL)
+                {
+                        fprintf (stderr, "Error in buffer allocation\n");
+                        ret     =-1;
+                        goto out;
+                }734524632 23657236 346247264374 23462 374364 53274 324632547365432743274  4732654374653274618824624 234238942342389739847  42937938742938479328743947347326746374 6472438947923479027287264726527469292 926423970234723847872394792932847237423  293847398479328472397 734932 gameplay. It's possible you have an unending appetite for these micromanagement titles, in which case we recommend getting heartily stuck into Supercell's latest game. While Clash of Clans brings something new to accompany its competent but unexceptional empire gameplay, for most of us it'll be a case of too little, too late."[14]The game has been very successful for Supercell. By April 2013, Supercell had only two games on the App Store, Clash of Clans and Hay Day, which together had grossed $279 million. Daily revenue was at $2.4 million,[15] with 8.5 million daily players, and Forbes projected a revenue of between $800 million and $1 billion by the end of 2013.[16][17] They ultimately earned $892 million (compared to $101 million in 2012).[18]
+
+
+
+
+                ret = read (fd, buffer, buffer_length);
+
+                if(ret < 0)
+                {
+                        fprintf (stderr, "Reading failed\n");
+                        ret     =-1;
+                        goto out;
+                }
+
+                buffer[buffer_length+1]='\0';
+
+                wstart                  =       0;
+                start                   =       0;
+                slide_incr              =       0;
+                end                     =       N;
+
+                if( remaining_length > 0 && remaining_content_incr < N )
+                {
+                        if(remaining_length<=N)
+                        {
+                                end = N - remaining_length;
+                                remaining_content_incr  = N - remaining_length;
+                        }
+                        else
+                        {
+                                end = 1;
+                                remaining_content_incr  = 1;
+                        }
+                }
+
+                temp_buffer = (char*)calloc(1,N+1);
+                if(temp_buffer == NULL)
+                {
+                        fprintf (stderr, "Error in buffer allocation\n");
+                        ret     =-1;
+                        goto out;
+                }
+
+                                else
+                                {
+                                        chunk_size = N+slide_incr;
+                                        chunk_buffer=(char*)calloc
+                                        (1,chunk_size+1);
+                                        if(chunk_buffer == NULL)
+                                        {
+                                                fprintf (stderr, 
+                                                "Error in buffer allocation\n");
+                                                ret     =-1;
+                                                goto out;
+                                        }
+
+                                        memcpy (chunk_buffer, 
+                                        buffer + start, chunk_size);
+                                }
+
+                                chunk_buffer[chunk_size+1]='\0';
+
+                                printf("%d******%d*****%s\n\n\n\n",chunk_size,strlen(chunk_buffer),chunk_buffer);
+                                ret = write(fd1,chunk_buffer,strlen(chunk_buffer));
+                                ret = fprintf(fp,"%d,",strlen(chunk_buffer));
+
+                                slide_incr      = 0;
+                                start           = end;
+                                wstart          = end;
+                                remaining_length= buffer_length - end;
+                                end             += N;
+
+                        } 
+                        else
+                        {
+                                end++;
+                                wstart++;
+                                slide_incr++;
+                        }
+                }
+                clean_buff(&temp_buffer);
+                if(size > buffer_length)
+                        clean_buff(&temp_buffer);
+
+                if(remaining_length > 0)
+                {
+                        remaining_buffer_content = (char*)calloc(1,
+                        remaining_length+1);
+                        if(remaining_buffer_content == NULL)
+                        {
+                                fprintf (stderr, 
+                                "Error in buffer allocation\n");
+                                ret     =-1;
+                                goto out;
+                        }
+
+
+Clash of Clans became an App Store top 5 download between December 2012 and May 2013,[19] and this success has been described as helping to usher in a new era in conjoint gaming on mobile devices.[20][21] In 2013, Clash of Clans was the third highest game in revenue generated on the App Store and Google Play.[22]To earn and store gold 734524632 23657236 346247264374 23462 374364 53274 324632547365432743274  4732654374653274618824624 234238942342389739847  42937938742938479328743947347326746374 6472438947923479027287264726527469292 926423970234723847872394792932847237423  293847398479328472397 734932and elixir, players must build gold mines and gold storages and elixir collectors and elixir storages, respectively. Elixir is used to train new troops, carry out research in the laboratory to upgrade troops and to build and upgrade certain buildings, mostly pertaining to buildings used in attacking another player's base. Gold is used to build defensive buildings and to upgrade the town hall, which allows access to more buildings and higher levels for existing buildings.[6]
+
+int main(int argc,char **argv)
+{
+        int ret         =       -1;
+        char* filename  =       NULL;
+
+        filename = argv[1];
+
+        if(!file_exist (filename))
+        {
+                fprintf (stderr, "Error in opening file\n");
+                goto out;
+        }
+
+        ret = variable_chunking(filename);
+        if(ret == -1)
+        {
+                fprintf (stderr, "Error in variable chunking\n");
+                goto out;
+        }
+        ret = 0;
+out:
+        return ret;
+}
+
+
+There are a number of buildings available to the player to defend their community, including cannons, mortars, bombs, traps, archer towers, and wizard towers. Players can also build walls, which can be upgraded as they increase in levelClash of Clans has received generally positive reviews. The iOS version holds an aggregate score of 74 out of 100 on Metacritic,[13] and 80.00% on GameRankings.[12].
+
+734524632 23657236 346247264374 23462 374364 53274 324632547365432743274  4732654374653274618824624 234238942342389739847  42937938742938479328743947347326746374 6472438947923479027287264726527469292 926423970234723847872394792932847237423  293847398479328472397 734932
