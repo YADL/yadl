@@ -11,6 +11,7 @@
 #include<time.h> 
 #include <libgen.h> 
 #include<openssl/md5.h>
+
 #if defined(CFLAG)
 #define COMMON_DIGEST_FOR_OPENSSL
 #include <CommonCrypto/CommonDigest.h>
@@ -25,7 +26,7 @@
 
 struct block_store
 {
-	size_t fd_block;
+        size_t fd_block;
 };
 
 

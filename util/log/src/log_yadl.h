@@ -5,6 +5,8 @@
 #include<stdarg.h>
 #include<pthread.h>
 #include<sys/stat.h>
+#include<unistd.h>
+#include<string.h>
 
 #ifdef LOG_MODE
 #define LOG_MODE 1
@@ -13,6 +15,8 @@
 #endif
 
 enum LOG_LEVEL{LOG_INFO=0,LOG_ERROR,LOG_DEBUG,LOG_WARNING};
+
+pthread_mutex_t mutex;
 
 FILE *fp;
 
@@ -46,4 +50,5 @@ log_write(int log_lev,char *comp,char *format,...);
  *       void
  */
 void
-log_fin();
+log_fini();
+

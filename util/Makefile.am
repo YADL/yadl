@@ -1,5 +1,5 @@
 
-SUBDIRS = util src
+SUBDIRS = log
 
 if HAVE_PKG_CONFIG
 pkgconfigdir = $(libdir)/pkgconfig

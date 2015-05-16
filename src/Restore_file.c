@@ -31,7 +31,7 @@ restore_file()
                 }
                 if (ret== 1)
                 {
-                        printf("\nPlease enter valid  full path of file");
+                        printf("\nPlease enter valid full path of file");
                         goto out4;
                 }
                 ret=restorefile(path);
@@ -41,7 +41,7 @@ restore_file()
         }
         ret=0;
 out:
-	clean_buff(&path);
+        clean_buff(&path);
         return ret;
         
 }
@@ -62,11 +62,11 @@ restorefile(char* path)
         char* buffer            =       NULL;
         char* buffer2           =       NULL;
         int length              =       0;
-        int sd1	                =       -1;
+        int sd1                 =       -1;
         struct stat             st;
         int bset                =       0;
         int eset                =       0;
-        int fd2	                =       -1;
+        int fd2                 =       -1;
         char* ts1               =       NULL;
         char* ts2               =       NULL;
         char* dir               =       NULL;
@@ -85,7 +85,8 @@ restorefile(char* path)
         sd1 = open(temp_name,O_RDONLY, S_IRUSR|S_IWUSR);
         if (sd1< 1)
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Restore file",
+                        "%s\n",strerror(errno));
                 goto out;
         }
         else
@@ -98,7 +99,8 @@ restorefile(char* path)
         fd2 = open(path,O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
         if (fd2< 1)
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Restore file","%s\n",
+                        strerror(errno));
                 goto out;
         }
         else
@@ -109,7 +111,8 @@ restorefile(char* path)
         {
                 if (-1 == lseek(sd1,0,SEEK_SET))
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Restore file","%s\n",
+                                strerror(errno));
                         goto out;
                 }
         }
@@ -124,26 +127,30 @@ restorefile(char* path)
                 ret=read(sd1,&length,int_size);
                 if (ret== -1)
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Restore file","%s\n",
+                                strerror(errno));
                         goto out;
                 }
                 buffer=(char*)calloc(1,length+1);
                 ret=read(sd1,buffer,length);
                 if (ret== -1)
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Restore file","%s\n",
+                                strerror(errno));
                         goto out;
                 }
                 ret=read(sd1,&bset,int_size);
                 if (ret== -1)
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Restore file","%s\n",
+                                strerror(errno));
                         goto out;
                 }
                 ret=read(sd1,&eset,int_size);
                 if (ret== -1)
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Restore file","%s\n",
+                                strerror(errno));
                         goto out;
                 }
                 buffer[length]='\0';
@@ -160,7 +167,8 @@ restorefile(char* path)
                 ret= write(fd2,buffer2,strlen(buffer2));
                 if (ret< 0)
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Restore file","%s\n",
+                                strerror(errno));
                         goto out;
                 }
                 size1-=(length+int_size+int_size+int_size);
@@ -172,4 +180,3 @@ out:
 return ret;
 
 }
-

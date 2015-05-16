@@ -48,7 +48,7 @@ out:
 }
 
 void
-log_fin()
+log_fini()
 {
         fclose(fp);
 }
@@ -61,11 +61,16 @@ log_write(int log_lev,char *comp,char *frmt,...)
         if( (LOG_MODE==0 && (log_lev==0 || log_lev==1)) || (LOG_MODE==1 &&
                 (log_lev==2 || log_lev==3)) )
         {
-                if(comp!=NULL)
-                        fprintf(fp,"Component: %s\n",comp);
+        pthread_mutex_lock(&mutex);
+                {
+                        if(comp!=NULL)
+                                fprintf(fp,"Component: %s\n",comp);
 
-                va_start(args,frmt);
-                vfprintf(fp,frmt,args);
-                va_end(args);
+                        va_start(args,frmt);
+                        vfprintf(fp,frmt,args);
+                        va_end(args);
+                }
+                pthread_mutex_unlock(&mutex);
         }
 }
+
