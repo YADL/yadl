@@ -28,6 +28,12 @@ struct block_store
 	size_t fd_block;
 };
 
+/*enum to define chunk types used for chunking*/
+enum chunk_type
+{
+	fixed_chunk     =   1,
+    	variable_chunk
+};
 
 /*@description:Function to create blockstore
 @in: void

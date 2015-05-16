@@ -1,0 +1,7 @@
+[==========] Running 1 test(s).
+[ RUN      ] null_test_success
+[       OK ] null_test_success
+[==========] 1 test(s) run.
+[  PASSED  ] 1 test(s).
+[  FAILED  ] 0 test(s).
+[  REPORT  ] Created dedup_test_xunit.xml report
