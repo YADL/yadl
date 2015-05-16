@@ -12,11 +12,13 @@ init_hash_store()
         
         int ret         =       -1;
         
-        fd_hash = open("filehashDedup.txt",O_APPEND|O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
+        fd_hash = open("filehashDedup.txt",O_APPEND|O_CREAT|O_RDWR,
+                        S_IRUSR|S_IWUSR);
         if (fd_hash == -1)
         {
-        printf("\nCreation of hash file failed with error [%s]\n",
-        strerror(errno));
+        log_write(LOG_ERROR,"Init hash store",
+                "\nCreation of hash file failed with error [%s]\n",
+                strerror(errno));
         goto out;
         }
         ret=0;
@@ -34,23 +36,29 @@ int
 insert_hash(char *buff,int offset)
 {
     
-        size_t 	        length;
+        size_t          length;
         int ret         =               -1;
-        
+
         length=strlen(buff);
         if (write (fd_hash, &length, int_size)== -1)
         {
-                printf("\nWrite failed with error%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Insert hash",
+                        "\nWrite failed with error %s\n",
+                        strerror(errno));
                 goto out;
         }
         if (-1 == write(fd_hash,buff,length))
         {
-                printf("\nWrite1 failed with error%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Insert hash",
+                        "\nWrite1 failed with error%s\n",
+                        strerror(errno));
                 goto out;
-        }        
+        }
         if (write (fd_hash, &offset, int_size)== -1)
         {
-                printf("\nWrite failed with error%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Insert hash",
+                        "\nWrite failed with error%s\n",
+                        strerror(errno));
                 goto out;
         }
         ret=0;
@@ -80,7 +88,9 @@ searchhash(char *out)
         // rewind the stream pointer to the start of temporary file
         if (-1 == lseek(fd_hash,0,SEEK_SET))
         {
-                printf("\nLseek failed with error: [%s]\n",strerror(errno));
+                log_write(LOG_ERROR,"Search hash",
+                        "\nLseek failed with error: [%s]\n",
+                        strerror(errno));
                 goto out;
         }
         if (size== 0)
@@ -93,20 +103,26 @@ searchhash(char *out)
                 ret=read(fd2,&length,int_size);
                 if (ret== -1)
                 {
-                        printf("\nError while reading %s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Search hash",
+                                "\nError while reading %s\n",
+                                strerror(errno));
                         goto out;
                 }
                 buffer=(char*)calloc(1,length+1);
                 ret = read(fd2,buffer,length);
                 if (ret== -1)
                 {
-                        printf("\nRead failed with error %s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Search hash",
+                                "\nRead failed with error %s\n",
+                                strerror(errno));
                         goto out;
                 }
                 ret=read(fd2,&offset,int_size);
                 if (ret== -1)
                 {
-                        printf("\nError while reading %s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Search hash",
+                                "\nError while reading %s\n",
+                                strerror(errno));
                         goto out;
                 }
 
@@ -148,7 +164,9 @@ getposition(char* hash)
         // rewind the stream pointer to the start of temporary file
         if (-1 == lseek(fd_hash,0,SEEK_SET))
         {
-                printf("\nLseek failed with error: [%s]\n",strerror(errno));
+                log_write(LOG_ERROR,"Get position",
+                        "\nLseek failed with error: [%s]\n",
+                        strerror(errno));
                 goto out;
         }
         if (size== 0)
@@ -162,7 +180,9 @@ getposition(char* hash)
                 ret=read(fd_hash,&length,int_size);
                 if (ret== -1)
                 {
-                        printf("\nError while reading %s",strerror(errno));
+                        log_write(LOG_ERROR,"Get position",
+                                "\nError while reading %s",
+                                strerror(errno));
                         goto out;
                 }
                 buffer=(char*)calloc(1,length+1);
@@ -170,13 +190,17 @@ getposition(char* hash)
                 ret = read(fd_hash,buffer,length);
                 if (ret== -1)
                 {
-                        printf("\nRead failed with error %s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Get position",
+                                "\nRead failed with error %s\n",
+                                strerror(errno));
                         goto out;
                 }
                 ret=read(fd_hash,&offset,int_size);
                 if (ret== -1)
                 {
-                        printf("\nError while reading %s",strerror(errno));
+                        log_write(LOG_ERROR,"Get position",
+                                "\nError while reading %s",
+                                strerror(errno));
                         goto out;
                 }
                 buffer[length]='\0';
@@ -213,7 +237,8 @@ fini_hash_store()
                 ret=close(fd_hash);
         if(ret==-1)
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Fini hash store",
+                        "%s\n",strerror(errno));
                 goto out;
         }
         ret=0;

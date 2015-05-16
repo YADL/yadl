@@ -10,7 +10,7 @@ delete_file()
 {
     
         int fd_cat      =       -1;
-        int ret	        =       -1;
+        int ret         =       -1;
         int status      =       -1;
         char *filename  =       NULL;
     
@@ -18,14 +18,16 @@ delete_file()
         fd_cat =open("filecatalog.txt",O_RDONLY); 
         if (fd_cat< 1)
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Delete file","%s\n",
+                        strerror(errno));
                 goto out;
         }
         printf("\n deduped files are\n");
         ret=readfilecatalog();
         if (ret== -1)
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Delete file","%s\n",
+                        strerror(errno));
                 goto out;
         }
         printf("\nSelect the file you want to delete\n");

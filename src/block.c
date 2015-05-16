@@ -11,10 +11,12 @@ init_block_store()
         
         int ret         =       -1;
 
-        fd.fd_block =open("blockstore.txt",O_APPEND|O_CREAT|O_RDWR, S_IWUSR|S_IRUSR);
+        fd.fd_block =open("blockstore.txt",O_APPEND|O_CREAT|O_RDWR,
+                        S_IWUSR|S_IRUSR);
         if (fd.fd_block == -1)
         {
-                printf("\nCreation of block file failed with error [%s]\n",
+                log_write(LOG_ERROR,"Init block store",
+                "Creation of block file failed with error [%s]\n",
                 strerror(errno));
                 goto out;
         }
@@ -32,7 +34,7 @@ int
 insert_block(char *buffer,size_t length)
 {
         
-        int ret		=		-1;
+        int ret         =       -1;
         
         if (length<= 0)
         {
@@ -40,7 +42,8 @@ insert_block(char *buffer,size_t length)
         }
         if (write (fd.fd_block, &length, INT_SIZE)== -1)
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Insert block","%s\n",
+                        strerror(errno));
                 goto out;
         }
         ret=lseek(fd.fd_block,1,SEEK_CUR);
@@ -48,12 +51,14 @@ insert_block(char *buffer,size_t length)
                 goto out;
         if(buffer == NULL)
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Insert block","%s\n",
+                        strerror(errno));
                 goto out;
         }
         if (-1 == write(fd.fd_block,buffer,length))
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Insert block","%s\n",
+                        strerror(errno));
                 goto out;
         }
 out:
@@ -83,7 +88,9 @@ get_block(int pos)
         {
                 if (-1 == lseek(fd.fd_block,0,SEEK_SET))
                 {
-                        printf("\nLseek failed with error: [%s]\n",strerror(errno));
+                        log_write(LOG_ERROR,"Get block",
+                                "\nLseek failed with error: [%s]\n",
+                                strerror(errno));
                         goto out;
                 }
         }
@@ -92,7 +99,9 @@ get_block(int pos)
                 ret=read(fd.fd_block,&length,INT_SIZE);
                 if (ret== -1)
                 {
-                        printf("\nError while reading %s",strerror(errno));
+                        log_write(LOG_ERROR,"Get block",
+                                "\nError while reading %s",
+                                strerror(errno));
                         goto out;
                 }
                 position=position+ret;
@@ -108,7 +117,8 @@ get_block(int pos)
                         ret = read(fd.fd_block,buffer,length);
                         if (ret== -1)
                         {
-                                printf("\nRead failed with error %s\n",strerror(errno));
+                                log_write(LOG_ERROR,"Get block","\nRead failed with error %s\n",
+                                        strerror(errno));
                                 goto out;
                         }
                         ret=0;
@@ -119,7 +129,9 @@ get_block(int pos)
                 ret = read(fd.fd_block,buffer,length);
                 if (ret== -1)
                 {
-                        printf("\nRead failed with error %s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Get block",
+                        "\nRead failed with error %s\n",
+                        strerror(errno));
                         goto out;
                 }
                 position=position+length;
@@ -151,7 +163,8 @@ fini_block_store()
                 ret=close(fd.fd_block);
         if(ret==-1)
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Fini block store","%s\n",
+                        strerror(errno));
                 goto out;
         }
         ret=0;

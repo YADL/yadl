@@ -9,29 +9,34 @@
  */
 
 int
-write_to_stub(char buff[],size_t length,int fd_stub,int b_offset,int e_offset)
+write_to_stub(char buff[],size_t length,int fd_stub,int b_offset,
+                int e_offset)
 {
         
-        int ret	        =        -1;
+        int ret        =        -1;
 
         if(write (fd_stub, &length, int_size)==-1)
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Write to stub","%s\n",
+                        strerror(errno));
                 goto out;
         }
         if(-1 == write(fd_stub,buff,length))
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Write to stub","%s\n",
+                        strerror(errno));
                 goto out;
         }
         if(write (fd_stub, &b_offset, int_size)==-1)
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Write to stub","%s\n",
+                        strerror(errno));
                 goto out;
         }
         if(write (fd_stub, &e_offset, int_size)==-1)
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Write to stub","%s\n",
+                        strerror(errno));
                 goto out;
         }
         ret=0;
@@ -40,7 +45,8 @@ out:
 
 }
 
-/*Function to check whether a hash of specfic range is present in stub or not.
+/*Function to check whether a hash of specfic range is present in
+  stub or not.
 Input:int fd_stub,int b_offset,int e_offset
 Output:int
 */
@@ -63,7 +69,8 @@ searchstubhash(int fd_stub,int b_offset,int e_offset)
         {
                 if(-1 == lseek(fd_stub,0,SEEK_SET))
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Search stub hash","%s\n",
+                                strerror(errno));
                         goto out;
                 }
         }
@@ -78,26 +85,30 @@ searchstubhash(int fd_stub,int b_offset,int e_offset)
                 ret=read(fd_stub,&length,int_size);
                 if (ret== -1)
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Search stub hash","%s\n",
+                                strerror(errno));
                         goto out;
                 }
                 buffer=(char*)calloc(1,length+1);
                 ret = read(fd_stub,buffer,length);
                 if (ret== -1)
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Search stub hash","%s\n",
+                                strerror(errno));
                         goto out;
                 }
                 ret=read(fd_stub,&bset,int_size);
                 if (ret== -1)
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Search stub hash","%s\n",
+                                strerror(errno));
                         goto out;
                 }
                 ret=read(fd_stub,&eset,int_size);
                 if (ret== -1)
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Search stub hash","%s\n",
+                                strerror(errno));
                         goto out;
                 }
                 buffer[length]='\0';
@@ -115,4 +126,3 @@ out:
         return ret;
 
 }
-

@@ -22,12 +22,13 @@ init_catalog_store()
         fd_cat =open("filecatalog.txt",O_APPEND|O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
         if (fd_cat< 1)
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Init catalog store",
+                        "%s\n",strerror(errno));
                 goto out;
         }
         ret=0;
 out:
-	return ret;
+        return ret;
 
 }
 
@@ -41,7 +42,7 @@ writecatalog(char* filename)
     
         int ret                 =       -1;
         char actualpath [PATH_MAX+1];
-        char *real_path	        =       NULL;
+        char *real_path         =       NULL;
         int size_of_real_path   =       0;
         
         if (filename== '\0' || filename == NULL)
@@ -51,18 +52,21 @@ writecatalog(char* filename)
         real_path = realpath(filename, actualpath);
         if (real_path== NULL)
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Write catalog",
+                        "%s\n",strerror(errno));
                 goto out;
         }
         size_of_real_path=strlen(real_path);
         if (-1 == write(fd_cat,&size_of_real_path,int_size))
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Write catalog",
+                        "%s\n",strerror(errno));
                 goto out;
         }
         if (-1 == write(fd_cat,real_path,size_of_real_path))
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Write catalog",
+                        "%s\n",strerror(errno));
                 goto out;
         }
         ret=0;
@@ -80,7 +84,7 @@ readfilecatalog()
 {
 
         struct stat             st;
-        int ret	         =       -1;
+        int ret          =       -1;
         char *buffer     =      NULL;
         int size         =       0;
         int length       =       0;
@@ -91,7 +95,8 @@ readfilecatalog()
         {
                 if (-1 == lseek(fd_cat,0,SEEK_SET))
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Read file catalog",
+                                "%s\n",strerror(errno));
                         goto out;
                 }
         }
@@ -105,18 +110,20 @@ readfilecatalog()
                 ret=read(fd_cat,&length,int_size);
                 if (ret== -1)
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Read file catalog",
+                                "%s\n",strerror(errno));
                         goto out;
                 }
                 buffer=(char*)calloc(1,length+1);
                 ret = read(fd_cat,buffer,length);
                 if (ret== -1)
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Read file catalog",
+                                "%s\n",strerror(errno));
                         goto out;
                 }
                 buffer[length]='\0';
-               	printf("%s\n",buffer);
+                printf("%s\n",buffer);
                 size-=(length+int_size);
                 memset(buffer,0,length+1);
                 clean_buff(&buffer);
@@ -149,7 +156,8 @@ comparepath(char out[])
         {
                 if (-1 == lseek(fd_cat,0,SEEK_SET))
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Compare path",
+                                "%s\n",strerror(errno));
                         goto out;
                 }
         }
@@ -163,14 +171,16 @@ comparepath(char out[])
                 ret=read(fd_cat,&length,int_size);
                 if (ret== -1)
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Compare path",
+                                strerror(errno));
                         goto out;
                 }
                 buffer=(char*)calloc(1,length+1);
                 ret = read(fd_cat,buffer,length);
                 if (ret== -1)
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Compare path",
+                                "%s\n",strerror(errno));
                         goto out;
                 }
                 buffer[length]='\0';
@@ -203,7 +213,8 @@ fini_catalog_store()
         ret=close(fd_cat);
         if (ret== -1)
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Fini catalog store",
+                        "%s\n",strerror(errno));
                 goto out;
         }
         ret=0;

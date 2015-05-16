@@ -6,6 +6,12 @@
 #include<dirent.h>
 #include<errno.h>
 #include<fcntl.h>
+#include "catalog.h"
+#include "block.h"
+#include "hash.h"
+#include "dedup.h"
+#include "restore.h"
+#include "delete.h"
 #define FILE_SIZE  200
 
 

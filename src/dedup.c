@@ -49,10 +49,12 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
         filename1 = basename(ts2);
         sprintf(dir,"%s/",dir);
         sprintf(temp_name,"%sDedup_%s",dir,filename1);
-        fd_input =open(filename,O_APPEND|O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
+        fd_input =open(filename,O_APPEND|O_CREAT|O_RDWR,
+                        S_IRUSR|S_IWUSR);
         if (fd_input< 1)
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Dedup file","%s\n",
+                        strerror(errno));
                 goto out;
         }
         ret=comparepath(filename);
@@ -62,13 +64,14 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
         }
         if (ret== 0)
         {
-                printf("\nfile is already deduped");
+                printf("\nFile is already deduped");
                 goto out;
         }
         fd_stub =open(temp_name,O_APPEND|O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
         if (fd_stub< 1)
         {
-                fprintf(stderr,"%s\n",strerror(errno));
+                log_write(LOG_ERROR,"Dedup file",
+                        "%s\n",strerror(errno));
                 goto out;
         }
         fstat(fd_input, &st);
@@ -94,8 +97,9 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                 if (ret== -1)
                         goto out;
                 printf("\nboffset %d eoffset %d\n",b_offset,e_offset);
-                ret=chunk_store(buffer,hash,length,h_length,b_offset,e_offset,fd_stub);
-                if (ret== -1)	
+                ret=chunk_store(buffer,hash,length,h_length,b_offset,
+                                e_offset,fd_stub);
+                if (ret== -1)
                         goto out;
                 e_offset++;
                 if (size<= 0)
@@ -128,7 +132,7 @@ get_next_chunk(int fd_input,int chunk_type,int block_size,char** buffer,
 int *length)
 {
 
-        int ret	        =       -1;
+        int ret        =       -1;
         
         *buffer=(char *)calloc(1,block_size+1);
         ret=read(fd_input,*buffer,block_size);
@@ -182,8 +186,8 @@ chunk_store(char *buff,char *hash,int length,int h_length,int e_offset,
 int b_offset,int fd_stub)
 {
         
-        int off	                =       -1;
-        int ret	                =       -1;
+        int off                =       -1;
+        int ret                =       -1;
 
         ret=searchhash(hash);
         if( ret== -1)
@@ -209,13 +213,15 @@ int b_offset,int fd_stub)
                 off=insert_block(buff, length);
                 if (off== -1)
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Chunk store",
+                                "%s\n",strerror(errno));
                         goto out;
                 }
                 ret=insert_hash(hash,off);
                 if (ret== -1)
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));;
+                        log_write(LOG_ERROR,"Chunk store",
+                                "%s\n",strerror(errno));;
                         goto out;
                 }
                 ret=searchstubhash(fd_stub, b_offset,e_offset);
@@ -223,11 +229,12 @@ int b_offset,int fd_stub)
                         goto  out;
                 if (ret== 1)
                 {
-                        ret=write_to_stub(hash,h_length,fd_stub,b_offset,
-                        e_offset);
+                        ret=write_to_stub(hash,h_length,fd_stub,
+                                b_offset,e_offset);
                         if (ret== -1)
                         {
-                                fprintf(stderr,"%s\n",strerror(errno));
+                                log_write(LOG_ERROR,"Chunk store",
+                                        "%s\n",strerror(errno));
                                 goto out;
                         }
                 }
@@ -237,8 +244,3 @@ out:
         return ret;
 
 }
-
-
-
-
-

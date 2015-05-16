@@ -1,10 +1,4 @@
 #include "main.h"
-#include "catalog.h"
-#include "block.h"
-#include "hash.h"
-#include "dedup.h"
-#include "restore.h"
-#include "delete.h"
 
 /*Main program!*/
 int
@@ -17,23 +11,33 @@ main ( int argc, char *argv[] )
         int ch              =       0;
         int block_size      =       0;
         int ret             =       -1;
-        
+
         filename=(char*)calloc(1,FILE_SIZE);
+
         ret=init_block_store();
         if (ret== -1)
         {
                 goto out;
         }
+
         ret=init_hash_store();
         if (ret== -1)
         {
                 goto out;
         }
+
         ret=init_catalog_store();
         if (ret== -1)
         {
                 goto out;
         }
+
+        ret=log_init("/var/log/","yadl");
+        if(ret == -1)
+        {
+                goto out;
+        }
+
         while (1)
         {
                 out1:printf("\n1.Do you want to dedup a file\n");
@@ -51,7 +55,8 @@ main ( int argc, char *argv[] )
                 ret=file_exist(filename);
                 if (ret== 0)
                 {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                        log_write(LOG_ERROR,"Dedup library","%s\n",
+                                strerror(errno));
                         continue;
                 }
                 printf("\nDo you want to do fixed or variable chunking\n");
@@ -60,7 +65,8 @@ main ( int argc, char *argv[] )
                 {
                         if (!(chunk_type== 1|| chunk_type== 2))
                         {
-                                printf("\nInvalid choice please enter valid choice\n");
+                                printf("\nInvalid choice. ");
+                                printf("Please enter valid choice\n");
                         }
                         else if (chunk_type== 2)
                         {
@@ -112,6 +118,7 @@ out:
         ret=fini_block_store();
         ret=fini_hash_store();
         ret=fini_catalog_store();
+        log_fini();
         return ret;
 
 }
