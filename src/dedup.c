@@ -1,6 +1,8 @@
 #include "dedup.h"
 #include "clean_buff.h"
 #include "main.h"
+#include "Rabin_Karp.h"
+
 #define NAME_SIZE 100
 
 // From catalog.h
@@ -41,6 +43,8 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
         char* filename1         =       NULL;
         char temp_name[NAME_SIZE]=      "";
         char* buffer            =       NULL;
+        char* chunk_buffer      =       NULL;
+        FILE *fp                =       NULL;
         struct stat st;
         
         ts1 = strdup(filename);
@@ -73,48 +77,100 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
         }
         fstat(fd_input, &st);
         size = st.st_size;
-        while(1)
+        if(chunk_type == 1)
         {
-                if (size<= block_size)
+                while(1)
                 {
-                        block_size=size;
+                        if (size<= block_size)
+                        {
+                                block_size=size;
+                        }
+                        b_offset=e_offset;
+                        ret=get_next_chunk(fd_input, chunk_type,block_size,
+                        &buffer, &length);
+                        if (ret<= 0)
+                                break;
+                        printf("\nbuffer %s\n",buffer);
+                        printf("\nbuffer length %d\n",length);
+                        e_offset+=length-1;
+                        size=size-length;
+                        ret=get_hash(buffer,length, hash_type,&hash,&h_length);
+                        printf("\nhash %s\n",hash);
+                        printf("length of hash is %d",h_length);
+                        if (ret== -1)
+                                goto out;
+                        printf("\nboffset %d eoffset %d\n",b_offset,e_offset);
+                        ret=chunk_store(buffer,hash,length,h_length,
+                        b_offset,e_offset,fd_stub);
+                        if (ret== -1)
+                                goto out;
+                        e_offset++;
+                        if (size<= 0)
+                        {
+                                ret=0;
+                                break;
+                        }
+                        clean_buff(&buffer);
+                        clean_buff(&hash);
                 }
-                b_offset=e_offset;
-                ret=get_next_chunk(fd_input, chunk_type,block_size,
-                &buffer, &length);
-                if (ret<= 0)
-                        break;
-                printf("\nbuffer %s\n",buffer);
-                printf("\nbuffer length %d\n",length);
-                e_offset+=length-1;
-                size=size-length;
-                ret=get_hash(buffer,length, hash_type,&hash,&h_length);
-                printf("\nhash %s\n",hash);
-                printf("length of hash is %d",h_length);
-                if (ret== -1)
-                        goto out;
-                printf("\nboffset %d eoffset %d\n",b_offset,e_offset);
-                ret=chunk_store(buffer,hash,length,h_length,b_offset,e_offset,fd_stub);
-                if (ret== -1)	
-                        goto out;
-                e_offset++;
-                if (size<= 0)
+        }
+        else
+        {
+                fp      = fopen("./Rabin_Karp.csv","w+");
+                if(fp == NULL)
                 {
-                        ret=0;
-                        break;
+                        fprintf(stderr, 
+                                "Error in creating file Rabin_Karp.csv\n");
+                        goto out;
                 }
-                clean_buff(&buffer);
-                clean_buff(&hash);
+
+                while(1)
+                {
+                        b_offset=e_offset;
+                        chunk_buffer = get_variable_chunk(fd_input,
+                                &ret,&size);
+                        if(ret == -1)
+                        {
+                                fprintf (stderr, 
+                                        "Error in variable chunking\n");
+                                goto out;
+                        }
+                        length = strlen(chunk_buffer);
+                        e_offset+=length-1;
+                        printf("chunk %s\n",chunk_buffer);
+                        ret = fprintf(fp,"%lu,",strlen(chunk_buffer));
+                        if (ret== -1)
+                                goto out;
+                        ret=get_hash(chunk_buffer,length, 
+                                hash_type,&hash,&h_length);
+                        printf("\nhash %s\n",hash);
+                        printf("length of hash is %d",h_length);
+                        if (ret== -1)
+                                goto out;
+                        printf("\nboffset %d eoffset %d\n",
+                                b_offset,e_offset);
+                        ret=chunk_store(chunk_buffer,hash,length,
+                                h_length,b_offset,e_offset,fd_stub);
+                        if (ret== -1)
+                                goto out;
+                        e_offset++;
+                        clean_buff(&chunk_buffer);
+                        if(size == 0)
+                                break;
+                }
         }
         ret=writecatalog(filename);
         if (ret== -1)
         {
                 goto out;
         }
-ret=0;
-out: 
+        ret=0;
+out:
+        if(fp != NULL)
+                fclose(fp);
+        if(fd_input != -1)
+                close(fd_input);
         return ret;
-
 }
 
 /*
@@ -128,7 +184,7 @@ get_next_chunk(int fd_input,int chunk_type,int block_size,char** buffer,
 int *length)
 {
 
-        int ret	        =       -1;
+        int ret         =       -1;
         
         *buffer=(char *)calloc(1,block_size+1);
         ret=read(fd_input,*buffer,block_size);
@@ -181,9 +237,9 @@ int
 chunk_store(char *buff,char *hash,int length,int h_length,int e_offset,
 int b_offset,int fd_stub)
 {
-        
-        int off	                =       -1;
-        int ret	                =       -1;
+
+        int off                 =       -1;
+        int ret                 =       -1;
 
         ret=searchhash(hash);
         if( ret== -1)

@@ -14,22 +14,6 @@
 
 typedef unsigned int y_uint32;
 
-/*@description:Function to clean buffer contents.
-@Input:
-        char** buffer   : Buffer to be cleaned
-@Output:
-        void
-*/
-inline void clean_buff(char** buffer);
-
-/*@description:Function to check whether file is existing or not.
-Input:
-        char* filename  : Name of the file to be checked 
-Output:
-        int             : 0 on success, -1 on failure
-*/
-int file_exist (char *filename);
-
 /*@description:Function to find the rolling hash of a particular window.
 Input:
         char* buffer            : Buffer to store window content
@@ -39,13 +23,15 @@ Input:
 Output:
         y_uint32 hash_value     : Rolling hash of a particular window
 */
-y_uint32 calc_hash (char *buffer, ssize_t len, int *ret);
+y_uint32 calc_hash (char *buffer, ssize_t length, int *ret);
 
 /*@description:Function to generate variable size chunk using rabin-karp.
 Input:
         char* filename  : Name of the file to be chunked 
+        int *ret        : Pointer to return 0 on success, -1 on failure
+        int *size       : Poniter to return remaining size of the file
 Output:
-        int             : 0 on success, -1 on failure
+        char*           : Chunk to be returned
 */
-int variable_chunking (char *filename);
+char* get_variable_chunk (int fd,int *ret,int *size);
 
