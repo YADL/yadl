@@ -24,6 +24,14 @@
 #define NAME_SIZE 100
 #define int_size sizeof(int)
 
+/*enum to define hash types used for hashing*/
+enum hash_type
+{
+	sha_1    =   1,
+	sha_256,
+	md_5
+};
+
 /*@description:Function to create hashstore
 @in: void
 @out: int 

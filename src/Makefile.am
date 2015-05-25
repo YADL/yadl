@@ -4,13 +4,13 @@
 lib_LTLIBRARIES = libyadl.la
 libyadl_la_SOURCES = dedup.c delete.c Restore_file.c \
 					 hash.c block.c stub.c clean_buff.c \
-					 catalog.c md5.c sha1.c 
+					 catalog.c md5.c sha1.c yadl.c
 libyadl_la_LDFLAGS = -lssl -lcrypto 
 
 noinst_HEADERS = block.h catalog.h clean_buff.h \
 				 config.h dedup.h delete.h \
 				 hash.h main.h md5.h restore.h \
-				 sha1.h stub.h
+				 sha1.h stub.h yadl.h
 
 # Create a program called 'dedup' but do not install it
 bin_PROGRAMS = yadl_dedup
