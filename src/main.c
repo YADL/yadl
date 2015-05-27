@@ -62,10 +62,6 @@ main ( int argc, char *argv[] )
                         {
                                 printf("\nInvalid choice please enter valid choice\n");
                         }
-                        else if (chunk_type== 2)
-                        {
-                                printf("\nVariable chunking is not supported\n");
-                        }
                         else
                         {
                                 break;

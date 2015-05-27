@@ -137,7 +137,8 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                         }
                         length = strlen(chunk_buffer);
                         e_offset+=length-1;
-                        printf("chunk %s\n",chunk_buffer);
+                        printf("chunk %s\n\n length = %lu",chunk_buffer, 
+                                strlen(chunk_buffer));
                         ret = fprintf(fp,"%lu,",strlen(chunk_buffer));
                         if (ret== -1)
                                 goto out;

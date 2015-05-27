@@ -13,7 +13,6 @@ inline void clean_buff(char** buffer)
         {
                 free(*buffer);
                 *buffer=NULL;
-               
         }
 
 }
