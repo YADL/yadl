@@ -1,38 +1,38 @@
 #include "Rabin_Karp.h"
 #include "clean_buff.h"
 
-/*Function to find the rolling hash of a particular window.
+/*Function to calculate the rolling hash for the first window of chunk.
 Input:
         char* buffer            : Buffer to store window content
-        ssize_t length          : Stores the length of the window
+        y_uint32 *power         : Stores the value PRIME^window length
         int *ret                : To return the status 0 on success,
                                 -1 on failure
 Output:
-        y_uint32 hash_value     : Rolling hash of a particular window
+        y_uint32 hash_value     : Rolling hash of a first window of chunk.
 */
 y_uint32
-calc_hash (char *buffer, ssize_t length, int *ret)
+calc_hash (char *buffer, y_uint32 *power, int *ret)
 {
-        int             i               =       0;
-        int             j               =       0;
-        int             n               =       0;
-        y_uint32        hash_value      =       0;
-        y_uint32        power           =       0;
 
-        if (buffer == NULL || length < 0) {
+        int             i               =       0;
+        y_uint32        hash_value      =       0;
+
+        *power           =       1;
+
+        if (buffer == NULL) {
                 *ret    = -1;
-                return  -1;
+                return    -1;
         }
 
-        for (i = 0; i < length; i++) {
-                n       =       length - i;
-                power   =       1;
-                for (j = 0; j < n; j++)
-                        power *= PRIME;
-                hash_value += (power * buffer[i]);
+        /*calculates the rolling hash for the first window of chunk and
+         power's PRIME with window length*/
+        for (i = 0; i < N; i++) {
+                hash_value = (PRIME * hash_value + buffer[i]) % M;
+                *power = (*power * PRIME) % M;
         }
         *ret = 0;
         return hash_value;
+
 }
 
 /*Function to keep track remaining content of previous buffer when there
@@ -56,6 +56,7 @@ get_remaining_buffer_content(char **remaining_buffer_content,
         char **remaining_window_content, ssize_t remaining_length,
         char **buffer, ssize_t start, ssize_t wstart)
 {
+
         int ret =       -1;
 
         *remaining_buffer_content = (char *)calloc(1,
@@ -63,19 +64,20 @@ get_remaining_buffer_content(char **remaining_buffer_content,
         if (*remaining_buffer_content == NULL) {
                 fprintf (stderr,
                         "Error in buffer allocation\n");
-                ret     = -1;
                 goto out;
         }
         memcpy (*remaining_buffer_content, *buffer + start,
                 remaining_length);
 
+        /*remaining_window_content holds last window content of previous
+          buffer, if remaining length of previous buffer is greater then
+          window size*/
         if (remaining_length >= N) {
                 *remaining_window_content = (char *)calloc
                         (1, N);
                 if (*remaining_window_content == NULL) {
                         fprintf (stderr,
                                 "Error in buffer allocation\n");
-                        ret     = -1;
                         goto out;
                 }
 
@@ -85,6 +87,7 @@ get_remaining_buffer_content(char **remaining_buffer_content,
         ret = 0;
 out:
         return ret;
+
 }
 
 /*Function to get the chunk when there is a match with fingerprint
@@ -112,6 +115,7 @@ get_chunk_buffer(ssize_t *remaining_content_incr, ssize_t *remaining_length,
         char **remaining_window_content, ssize_t start, ssize_t end,
         ssize_t wstart, ssize_t slide_incr)
 {
+
         ssize_t chunk_size      =       0;
         int     ret             =       -1;
 
@@ -124,7 +128,6 @@ get_chunk_buffer(ssize_t *remaining_content_incr, ssize_t *remaining_length,
                         (1, chunk_size+1);
                 if (*chunk_buffer == NULL) {
                         fprintf (stderr, "Error in buffer allocation\n");
-                        ret     = -1;
                         goto out;
                 }
 
@@ -146,7 +149,6 @@ get_chunk_buffer(ssize_t *remaining_content_incr, ssize_t *remaining_length,
                         (1, chunk_size+1);
                 if (*chunk_buffer == NULL) {
                         fprintf (stderr, "Error in buffer allocation\n");
-                        ret     = -1;
                         goto out;
                 }
 
@@ -167,6 +169,11 @@ Output:
 char*
 get_variable_chunk (int fd, int *ret, int *size)
 {
+
+        int     counter1                =       0;
+        int     counter2                =       0;
+        int     flag                    =       0;
+        int     remaining_flag          =       0;
         static char *buffer;
 
         char    *temp_buffer              =       NULL;
@@ -174,7 +181,8 @@ get_variable_chunk (int fd, int *ret, int *size)
         char    *remaining_buffer_content =       NULL;
         char    *remaining_window_content =       NULL;
 
-        y_uint32 hash   =       0;
+        y_uint32 hash    =       0;
+        y_uint32 power   =       0;
 
         static ssize_t start;
         static ssize_t end;
@@ -201,7 +209,6 @@ get_variable_chunk (int fd, int *ret, int *size)
                         }
 
                         *ret = read (fd, buffer, buffer_length);
-
                         if (*ret <= 0) {
                                 fprintf (stderr, "Reading failed\n");
                                 *ret     = -1;
@@ -223,11 +230,12 @@ get_variable_chunk (int fd, int *ret, int *size)
                         remaining_content_incr according to the window size*/
                         if (remaining_length > 0
                         && remaining_content_incr < N) {
-                                if (remaining_length <= N) {
+                                if (remaining_length < N) {
                                         end = N - remaining_length;
-                                        remaining_content_incr  = N;
+                                        remaining_content_incr  = N -
+                                                remaining_length;
                                 } else {
-                                        end = 1;
+                                        end = 0;
                                         remaining_content_incr  = 1;
                                 }
                         }
@@ -237,49 +245,51 @@ get_variable_chunk (int fd, int *ret, int *size)
                 fingerprint. If match is successful then write chunks to
                 file and length of chunk to .csv file*/
                 while (end < buffer_length) {
-                        temp_buffer = (char *)calloc(1, N);
-                        if (temp_buffer == NULL) {
-                                fprintf (stderr,
-                                        "Error in buffer allocation\n");
-                                *ret     = -1;
-                                goto out;
-                        }
+                        if (flag == 0) {
+                                temp_buffer = (char *)calloc(1, N);
+                                if (temp_buffer == NULL) {
+                                        fprintf (stderr,
+                                                "Error in buffer allocation\n");
+                                        *ret     = -1;
+                                        goto out;
+                                }
 
-                        /*Creates the temp_buffer with previous buffers
-                        remaining content and requried amount of data
-                        from current buffer*/
-                        if (remaining_length > 0
-                        && remaining_content_incr < N
-                        && remaining_content_incr != 0) {
-                                if (remaining_length <= N)
+                                /*Creates the temp_buffer with previous buffers
+                                remaining content and requried amount of data
+                                from current buffer*/
+                                if (remaining_length > 0
+                                && remaining_content_incr < N
+                                && remaining_content_incr != 0) {
+                                        if (remaining_length < N) {
+                                                memcpy (temp_buffer,
+                                                   remaining_buffer_content,
+                                                   remaining_length);
+
+                                                wstart = end - 1;
+
+                                                memcpy (temp_buffer + (N-end),
+                                                        buffer, end);
+                                                remaining_flag = 1;
+                                        }
+                                        remaining_content_incr++;
+                                }
+                                /*Creates the temp_buffer of window size
+                                from current buffer*/
+                                else {
                                         memcpy (temp_buffer,
-                                                remaining_buffer_content,
-                                                remaining_length);
-                                else
-                                        memcpy (temp_buffer,
-                                                remaining_window_content +
-                                                remaining_content_incr,
-                                                N - remaining_content_incr);
+                                                buffer + wstart, N);
+                                }
 
-                                        memcpy(temp_buffer + (N-end),
-                                                buffer + wstart, end);
-                                                remaining_content_incr++;
-                        }
-                        /*Creates the temp_buffer of window size
-                        from current buffer*/
-                        else {
-                                memcpy (temp_buffer, buffer + wstart, N);
+                                hash = calc_hash (temp_buffer, &power, ret);
+                                if (*ret == -1) {
+                                        fprintf (stderr,
+                                                "Error calculating rolling hash\n");
+                                        goto out;
+                                }
+                                clean_buff(&temp_buffer);
                         }
 
-                        hash = calc_hash (temp_buffer, N, ret);
-                        if (*ret == -1) {
-                                fprintf (stderr,
-                                        "Error calculating rolling hash\n");
-                                goto out;
-                        }
-                        clean_buff(&temp_buffer);
-
-                        if ((hash & FINGER_PRINT) == 0) {
+                        if (hash == FINGER_PRINT) {
                                 *ret = get_chunk_buffer
                                 (&remaining_content_incr, &remaining_length,
                                 &chunk_buffer, &buffer,
@@ -297,9 +307,51 @@ get_variable_chunk (int fd, int *ret, int *size)
                                 end              += N;
                                 return chunk_buffer;
                         } else {
+
+                                /*Sliding window when there is remaning content
+                                  in previous buffer with remaining length
+                                  less then window size*/
+                                if (remaining_content_incr != 0 &&
+                                    remaining_content_incr < N &&
+                                    remaining_flag == 1) {
+                                        hash = (hash * PRIME - power *
+                                        remaining_buffer_content[counter1] +
+                                        buffer[end-1]) % M;
+
+                                        remaining_content_incr++;
+                                        counter1++;
+                                } else {
+                                        counter1 = 0;
+                                }
+                                /*Sliding window when there is remaning content
+                                  in previous buffer with remaining length
+                                  greater then window size*/
+                                if (remaining_content_incr != 0 &&
+                                    remaining_content_incr <= N &&
+                                    remaining_flag == 0) {
+                                        hash = (hash * PRIME - power *
+                                        remaining_window_content[counter2] +
+                                        buffer[end]) % M;
+
+                                        remaining_content_incr++;
+                                        counter2++;
+                                } else {
+                                        counter2 = 0;
+                                        /*Sliding window with the current
+                                          buffer*/
+                                        if (remaining_content_incr == 0 ||
+                                            remaining_content_incr >= N) {
+                                                hash = (hash * PRIME - power *
+                                                buffer[start+slide_incr] +
+                                                buffer[end]) % M;
+
+                                                slide_incr++;
+                                        }
+                                }
+
                                 end++;
                                 wstart++;
-                                slide_incr++;
+                                flag = 1;
                         }
                 }
                 /*Keeps track of remaining buffers content which is not
@@ -315,14 +367,21 @@ get_variable_chunk (int fd, int *ret, int *size)
 
                 end = 0;
                 *size -= buffer_length;
-
+                clean_buff(&buffer);
+                if (*size == 0) {
+                        start           = 0;
+                        wstart          = 0;
+                        buffer_length   = 0;
+                }
                 /*If buffer content is not matched with fingerprint and it has
                  reached end of file, consider remaining buffer content as
                  chunk*/
                 if (*size == 0 && remaining_length > 0) {
+                        if (remaining_length >= N)
+                                clean_buff(&remaining_window_content);
+                        remaining_length = 0;
                         return remaining_buffer_content;
                 }
-                clean_buff(&buffer);
         }
         *ret = 0;
 out:

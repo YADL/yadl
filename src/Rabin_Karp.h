@@ -8,23 +8,24 @@
 #include<unistd.h>
 #include<string.h>
 
-#define PRIME 27
+#define PRIME 23
 #define N 128
 #define FINGER_PRINT 34
 #define BUFFER_LEN 1024
+#define M 40
 
 typedef unsigned int y_uint32;
 
 /*@description:Function to find the rolling hash of a particular window.
 Input:
         char* buffer            : Buffer to store window content
-        ssize_t length          : Stores the length of the window
+        y_uint32 *power         : Stores the value PRIME^window length
         int *ret                : To return the status 0 on success,
          -1 on failure
 Output:
         y_uint32 hash_value     : Rolling hash of a particular window
 */
-y_uint32 calc_hash (char *buffer, ssize_t length, int *ret);
+y_uint32 calc_hash (char *buffer, y_uint32 *power, int *ret);
 
 /*@description:Function to keep track remaining content of previous
  buffer when there is no match with fingerprint
@@ -82,4 +83,3 @@ Output:
         char*           : Chunk to be returned
 */
 char *get_variable_chunk (int fd, int *ret, int *size);
-
