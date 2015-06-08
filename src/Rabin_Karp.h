@@ -9,7 +9,7 @@
 #include<string.h>
 
 #define PRIME 23
-#define N 128
+#define N 200
 #define FINGER_PRINT 34
 #define BUFFER_LEN 1024
 #define M 40
@@ -39,14 +39,13 @@ Input:
                                         the previous window
         char** buffer                  : Contains current buffer content
         ssize_t start                  : Starting offset of buffer
-        ssize_t wstart                 : Starting offset of window
 Output:
         int     ret                    : 0 on success, -1 on failure
 */
 int
 get_remaining_buffer_content(char **remaining_buffer_content,
         char **remaining_window_content, ssize_t remaining_length,
-        char **buffer, ssize_t start, ssize_t wstart);
+        char **buffer, ssize_t start);
 
 /*@description:Function to get the chunk when there is a match with
  fingerprint
@@ -60,8 +59,7 @@ Input:
         char** chunk_buffer            : Holds the chunk content
         char** buffer                  : Contains current buffer content
         ssize_t start                  : Starting offset of buffer
-        ssize_t end                    : Ending offset of buffer
-        ssize_t wstart                 : Starting offset of window
+        ssize_t end                    : Ending offset of bufferw
         ssize_t slide_incr             : Keeps track of buffer sliding
         ssize_t* remaining_content_incr: Keeps track of sliding of
                                         previous buffer
@@ -72,11 +70,11 @@ int
 get_chunk_buffer(ssize_t *remaining_content_incr, ssize_t *remaining_length,
         char **chunk_buffer, char **buffer, char **remaining_buffer_content,
         char **remaining_window_content, ssize_t start, ssize_t end,
-        ssize_t wstart, ssize_t slide_incr);
+        ssize_t slide_incr);
 
 /*@description:Function to generate variable size chunk using rabin-karp.
 Input:
-        char* filename  : Name of the file to be chunked
+        int fd          : File descriptor of file that to be chuncked
         int *ret        : Pointer to return 0 on success, -1 on failure
         int *size       : Poniter to return remaining size of the file
 Output:

@@ -47,20 +47,19 @@ Input:
                                         the previous window
         char** buffer                  : Contains current buffer content
         ssize_t start                  : Starting offset of buffer
-        ssize_t wstart                 : Starting offset of window
 Output:
         int     ret                    : 0 on success, -1 on failure
 */
 int
 get_remaining_buffer_content(char **remaining_buffer_content,
         char **remaining_window_content, ssize_t remaining_length,
-        char **buffer, ssize_t start, ssize_t wstart)
+        char **buffer, ssize_t start)
 {
 
         int ret =       -1;
 
         *remaining_buffer_content = (char *)calloc(1,
-                remaining_length);
+                remaining_length + 1);
         if (*remaining_buffer_content == NULL) {
                 fprintf (stderr,
                         "Error in buffer allocation\n");
@@ -74,7 +73,7 @@ get_remaining_buffer_content(char **remaining_buffer_content,
           window size*/
         if (remaining_length >= N) {
                 *remaining_window_content = (char *)calloc
-                        (1, N);
+                        (1, N + 1);
                 if (*remaining_window_content == NULL) {
                         fprintf (stderr,
                                 "Error in buffer allocation\n");
@@ -82,7 +81,7 @@ get_remaining_buffer_content(char **remaining_buffer_content,
                 }
 
                 memcpy (*remaining_window_content,
-                        *buffer + wstart, N);
+                        *buffer + BUFFER_LEN - N, N);
         }
         ret = 0;
 out:
@@ -102,7 +101,6 @@ Input:
         char** buffer                  : Contains current buffer content
         ssize_t start                  : Starting offset of buffer
         ssize_t end                    : Ending offset of buffer
-        ssize_t wstart                 : Starting offset of window
         ssize_t slide_incr             : Keeps track of buffer sliding
         ssize_t* remaining_content_incr: Keeps track of sliding of
                                         previous buffer
@@ -113,7 +111,7 @@ int
 get_chunk_buffer(ssize_t *remaining_content_incr, ssize_t *remaining_length,
         char **chunk_buffer, char **buffer, char **remaining_buffer_content,
         char **remaining_window_content, ssize_t start, ssize_t end,
-        ssize_t wstart, ssize_t slide_incr)
+        ssize_t slide_incr)
 {
 
         ssize_t chunk_size      =       0;
@@ -133,7 +131,7 @@ get_chunk_buffer(ssize_t *remaining_content_incr, ssize_t *remaining_length,
 
                 memcpy (*chunk_buffer, *remaining_buffer_content,
                         *remaining_length);
-                memcpy (*chunk_buffer + *remaining_length, *buffer + start,
+                memcpy (*chunk_buffer + *remaining_length, *buffer,
                         end);
 
                 *remaining_content_incr  = 0;
@@ -162,9 +160,11 @@ out:
 
 /*Function to generate variable size chunk using rabin-karp.
 Input:
-        char* filename  : Name of the file to be chunked
+        int fd          : File descriptor of file that to be chuncked
+        int *ret        : Pointer to return 0 on success, -1 on failure
+        int *size       : Poniter to return remaining size of the file
 Output:
-        int             : 0 on success, -1 on failure
+        char*           : Chunk to be returned
 */
 char*
 get_variable_chunk (int fd, int *ret, int *size)
@@ -181,12 +181,11 @@ get_variable_chunk (int fd, int *ret, int *size)
         char    *remaining_buffer_content =       NULL;
         char    *remaining_window_content =       NULL;
 
-        y_uint32 hash    =       0;
-        y_uint32 power   =       0;
+        y_uint32 hash    =      0;
+        y_uint32 power   =      0;
 
         static ssize_t start;
         static ssize_t end;
-        static ssize_t wstart;
         static ssize_t remaining_length;
         static ssize_t buffer_length;
 
@@ -207,20 +206,16 @@ get_variable_chunk (int fd, int *ret, int *size)
                                 *ret     = -1;
                                 goto out;
                         }
-
                         *ret = read (fd, buffer, buffer_length);
                         if (*ret <= 0) {
                                 fprintf (stderr, "Reading failed\n");
                                 *ret     = -1;
                                 goto out;
                         }
-
                         if (remaining_length == 0 && buffer_length <= N) {
                                 *size = 0;
                                 return buffer;
                         }
-
-                        wstart                  =       0;
                         start                   =       0;
                         slide_incr              =       0;
                         end                     =       N;
@@ -228,8 +223,7 @@ get_variable_chunk (int fd, int *ret, int *size)
                         /*If there is remaining content in previous buffer,
                         set the end pointer of new buffer and
                         remaining_content_incr according to the window size*/
-                        if (remaining_length > 0
-                        && remaining_content_incr < N) {
+                        if (remaining_length > 0) {
                                 if (remaining_length < N) {
                                         end = N - remaining_length;
                                         remaining_content_incr  = N -
@@ -246,7 +240,7 @@ get_variable_chunk (int fd, int *ret, int *size)
                 file and length of chunk to .csv file*/
                 while (end < buffer_length) {
                         if (flag == 0) {
-                                temp_buffer = (char *)calloc(1, N);
+                                temp_buffer = (char *)calloc(1, N + 1);
                                 if (temp_buffer == NULL) {
                                         fprintf (stderr,
                                                 "Error in buffer allocation\n");
@@ -254,33 +248,43 @@ get_variable_chunk (int fd, int *ret, int *size)
                                         goto out;
                                 }
 
+                                if (remaining_length == N &&
+                                        remaining_content_incr != 0) {
+                                        memcpy (temp_buffer,
+                                                   remaining_window_content,
+                                                   N);
+                                        hash = calc_hash (temp_buffer,
+                                                &power, ret);
+                                }
+
                                 /*Creates the temp_buffer with previous buffers
                                 remaining content and requried amount of data
                                 from current buffer*/
                                 if (remaining_length > 0
-                                && remaining_content_incr < N
                                 && remaining_content_incr != 0) {
                                         if (remaining_length < N) {
                                                 memcpy (temp_buffer,
                                                    remaining_buffer_content,
                                                    remaining_length);
 
-                                                wstart = end - 1;
-
                                                 memcpy (temp_buffer + (N-end),
                                                         buffer, end);
                                                 remaining_flag = 1;
+                                                hash = calc_hash (temp_buffer,
+                                                        &power, ret);
+                                        } else {
+                                                remaining_flag = 0;
                                         }
-                                        remaining_content_incr++;
                                 }
                                 /*Creates the temp_buffer of window size
                                 from current buffer*/
                                 else {
                                         memcpy (temp_buffer,
-                                                buffer + wstart, N);
+                                                buffer + start, N);
+                                        hash = calc_hash (temp_buffer,
+                                                &power, ret);
                                 }
 
-                                hash = calc_hash (temp_buffer, &power, ret);
                                 if (*ret == -1) {
                                         fprintf (stderr,
                                                 "Error calculating rolling hash\n");
@@ -295,14 +299,14 @@ get_variable_chunk (int fd, int *ret, int *size)
                                 &chunk_buffer, &buffer,
                                 &remaining_buffer_content,
                                 &remaining_window_content,
-                                start, end, wstart, slide_incr);
+                                start, end, slide_incr);
 
                                 if (*ret == -1)
                                         goto out;
 
                                 slide_incr       = 0;
+                                hash             = 0;
                                 start            = end;
-                                wstart           = end;
                                 remaining_length = buffer_length - end;
                                 end              += N;
                                 return chunk_buffer;
@@ -316,8 +320,7 @@ get_variable_chunk (int fd, int *ret, int *size)
                                     remaining_flag == 1) {
                                         hash = (hash * PRIME - power *
                                         remaining_buffer_content[counter1] +
-                                        buffer[end-1]) % M;
-
+                                        buffer[end]) % M;
                                         remaining_content_incr++;
                                         counter1++;
                                 } else {
@@ -332,25 +335,22 @@ get_variable_chunk (int fd, int *ret, int *size)
                                         hash = (hash * PRIME - power *
                                         remaining_window_content[counter2] +
                                         buffer[end]) % M;
-
                                         remaining_content_incr++;
                                         counter2++;
                                 } else {
                                         counter2 = 0;
-                                        /*Sliding window with the current
-                                          buffer*/
-                                        if (remaining_content_incr == 0 ||
-                                            remaining_content_incr >= N) {
-                                                hash = (hash * PRIME - power *
-                                                buffer[start+slide_incr] +
-                                                buffer[end]) % M;
-
-                                                slide_incr++;
-                                        }
                                 }
-
+                                /*Sliding window with the current
+                                          buffer*/
+                                if ((remaining_content_incr == 0 ||
+                                        remaining_content_incr >= N) &&
+                                        counter1 == 0 && counter2 == 0) {
+                                        hash = (hash * PRIME - power *
+                                        buffer[start+slide_incr] +
+                                        buffer[end]) % M;
+                                        slide_incr++;
+                                }
                                 end++;
-                                wstart++;
                                 flag = 1;
                         }
                 }
@@ -360,28 +360,26 @@ get_variable_chunk (int fd, int *ret, int *size)
                         *ret = get_remaining_buffer_content
                                 (&remaining_buffer_content,
                                 &remaining_window_content, remaining_length,
-                                &buffer, start, wstart);
+                                &buffer, start);
                         if (*ret == -1)
                                 goto out;
                 }
-
                 end = 0;
                 *size -= buffer_length;
                 clean_buff(&buffer);
                 if (*size == 0) {
                         start           = 0;
-                        wstart          = 0;
                         buffer_length   = 0;
                 }
-                /*If buffer content is not matched with fingerprint and it has
-                 reached end of file, consider remaining buffer content as
-                 chunk*/
-                if (*size == 0 && remaining_length > 0) {
-                        if (remaining_length >= N)
-                                clean_buff(&remaining_window_content);
-                        remaining_length = 0;
-                        return remaining_buffer_content;
-                }
+        }
+        /*If buffer content is not matched with fingerprint and it has
+        reached end of file, consider remaining buffer content as
+        chunk*/
+        if (remaining_length > 0) {
+                if (remaining_length >= N)
+                        clean_buff(&remaining_window_content);
+                remaining_length = 0;
+                return remaining_buffer_content;
         }
         *ret = 0;
 out:
