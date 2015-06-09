@@ -44,6 +44,5 @@ AC_SUBST(CFLAGS)
 AC_PREFIX_DEFAULT(/usr)
 
 AC_CONFIG_FILES([Makefile
-                 src/Makefile
-		rabin_karp/Makefile])
+                 src/Makefile])
 AC_OUTPUT
