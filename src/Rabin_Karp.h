@@ -9,10 +9,10 @@
 #include<string.h>
 
 #define PRIME 23
-#define N 200
-#define FINGER_PRINT 34
-#define BUFFER_LEN 1024
-#define M 40
+#define N 2048
+#define FINGER_PRINT 938
+#define BUFFER_LEN 10240
+#define M 1021
 
 typedef unsigned int y_uint32;
 

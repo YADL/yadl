@@ -90,16 +90,11 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                         &buffer, &length);
                         if (ret<= 0)
                                 break;
-                        printf("\nbuffer %s\n",buffer);
-                        printf("\nbuffer length %d\n",length);
                         e_offset+=length-1;
                         size=size-length;
                         ret=get_hash(buffer,length, hash_type,&hash,&h_length);
-                        printf("\nhash %s\n",hash);
-                        printf("length of hash is %d",h_length);
                         if (ret== -1)
                                 goto out;
-                        printf("\nboffset %d eoffset %d\n",b_offset,e_offset);
                         ret=chunk_store(buffer,hash,length,h_length,
                         b_offset,e_offset,fd_stub);
                         if (ret== -1)
@@ -137,19 +132,10 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                         }
                         length = strlen(chunk_buffer);
                         e_offset+=length-1;
-                        printf("chunk %s\n\n length = %lu",chunk_buffer, 
-                                strlen(chunk_buffer));
-                        ret = fprintf(fp,"%lu,",strlen(chunk_buffer));
-                        if (ret== -1)
-                                goto out;
                         ret=get_hash(chunk_buffer,length, 
                                 hash_type,&hash,&h_length);
-                        printf("\nhash %s\n",hash);
-                        printf("length of hash is %d",h_length);
                         if (ret== -1)
                                 goto out;
-                        printf("\nboffset %d eoffset %d\n",
-                                b_offset,e_offset);
                         ret=chunk_store(chunk_buffer,hash,length,
                                 h_length,b_offset,e_offset,fd_stub);
                         if (ret== -1)
@@ -249,7 +235,6 @@ int b_offset,int fd_stub)
         }
         if (ret== 0)
         {
-                printf("\nHash is already present");
                 ret=searchstubhash(fd_stub, b_offset,e_offset);
                 if (ret== -1)
                         goto  out;
@@ -263,6 +248,7 @@ int b_offset,int fd_stub)
         }
         else
         {
+                //scanf("%d",&off);
                 off=insert_block(buff, length);
                 if (off== -1)
                 {
