@@ -174,6 +174,7 @@ get_variable_chunk (int fd, int *ret, int *size)
         int     counter2                =       0;
         static int flag;
         int     remaining_flag          =       0;
+
         static char *buffer;
         static char *previous_remaining_block;
 
@@ -218,6 +219,7 @@ get_variable_chunk (int fd, int *ret, int *size)
                                 *size = 0;
                                 return buffer;
                         }
+
                         start                   =       0;
                         slide_incr              =       0;
                         end                     =       N;
@@ -312,7 +314,7 @@ get_variable_chunk (int fd, int *ret, int *size)
                                 flag             = 0;
                                 start            = end;
                                 remaining_length = buffer_length - end;
-                                end              += N;
+                                end += N;
                                 clean_buff(&previous_remaining_block);
                                 previous_block_length = 0;
                                 return chunk_buffer;
@@ -343,7 +345,6 @@ get_variable_chunk (int fd, int *ret, int *size)
                                         buffer[end]) % M;
                                         remaining_content_incr++;
                                         counter2++;
-                                        //printf(".");
                                 } else {
                                         counter2 = 0;
                                 }
@@ -353,12 +354,18 @@ get_variable_chunk (int fd, int *ret, int *size)
                                         remaining_content_incr >= N) &&
                                         counter1 == 0 && counter2 == 0) {
 
-                                        if(remaining_content_incr >= N) {
+                                        /*Returns the remaining content of
+                                         previous buffer when there is no
+                                        match with finger print even after
+                                        sliding whole window to current buffer*/
+                                        if (remaining_content_incr >= N) {
+                                                remaining_length = buffer_length;
                                                 clean_buff(&remaining_window_content);
                                                 clean_buff(&previous_remaining_block);
                                                 previous_block_length = 0;
                                                 return remaining_buffer_content;
                                         }
+
                                         hash = (hash * PRIME - power *
                                         buffer[start+slide_incr] +
                                         buffer[end]) % M;
@@ -370,6 +377,7 @@ get_variable_chunk (int fd, int *ret, int *size)
                 }
                 /*Keeps track of remaining buffers content which is not
                  matched with fingerprint*/
+
                 if (remaining_length > 0) {
                         *ret = get_remaining_buffer_content
                                 (&remaining_buffer_content,
@@ -378,7 +386,8 @@ get_variable_chunk (int fd, int *ret, int *size)
                         if (*ret == -1)
                                 goto out;
                 }
-                if(previous_block_length == 0) {
+
+                if (previous_block_length == 0 && remaining_length > 0) {
                         previous_remaining_block = (char *)calloc(1,
                         remaining_length + 1);
                         memcpy(previous_remaining_block,
@@ -398,17 +407,23 @@ get_variable_chunk (int fd, int *ret, int *size)
                         &remaining_window_content,
                         start, end, slide_incr);
                         clean_buff(&remaining_buffer_content);
-                        return chunk_buffer;
-                }
-                end = 0;
-                clean_buff(&buffer);
-                if (*size == 0) {
+                        end             = 0;
                         start           = 0;
                         buffer_length   = 0;
                         hash            = 0;
                         power           = 0;
                         flag            = 0;
+                        remaining_length = 0;
+                        buffer_length   = 0;
+                        previous_block_length = 0;
+                        clean_buff(&buffer);
+                        clean_buff(&remaining_window_content);
+                        clean_buff(&remaining_buffer_content);
+                        clean_buff(&previous_remaining_block);
+                        return chunk_buffer;
                 }
+                end = 0;
+                clean_buff(&buffer);
         }
         *ret = 0;
 out:
