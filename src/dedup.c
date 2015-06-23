@@ -17,7 +17,7 @@ int comparepath(char out[]);
 int searchhash(char *out);
 int get_next_chunk(int fd_input,int chunk_type,
         int block_size,char** buffer, int *length);
-int chunk_store(char *buff,char *hash,int length,
+int chunk_store(vector_ptr list,char *hash,int length,
         int h_length,int e_offset, int b_offset,int fd_stub);
 /*
 Function to dedup a file whose path is specified by the user.
@@ -36,6 +36,7 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
         int b_offset            =       0;
         int e_offset            =       0;
         int size                =       0;
+        int chunk_flag          =       0;
         char* hash              =       NULL;
         char* ts1               =       NULL;
         char* ts2               =       NULL;
@@ -46,7 +47,7 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
         char* chunk_buffer      =       NULL;
         FILE *fp                =       NULL;
         struct stat st;
-        
+        vector_ptr list         =       NULL;
         ts1 = strdup(filename);
         ts2 = strdup(filename);
         dir = dirname(ts1);
@@ -69,7 +70,7 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                 printf("\nfile is already deduped");
                 goto out;
         }
-        fd_stub =open(temp_name,O_APPEND|O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
+        fd_stub = open(temp_name,O_APPEND|O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
         if (fd_stub< 1)
         {
                 fprintf(stderr,"%s\n",strerror(errno));
@@ -81,6 +82,7 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
         {
                 while(1)
                 {
+                        list = NULL;
                         if (size<= block_size)
                         {
                                 block_size=size;
@@ -90,12 +92,13 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                         &buffer, &length);
                         if (ret<= 0)
                                 break;
+                        list = insert_vector_element(buffer, list, &ret);
                         e_offset+=length-1;
                         size=size-length;
-                        ret=get_hash(buffer,length, hash_type,&hash,&h_length);
+                        ret=get_hash(hash_type,&hash,&h_length,list);
                         if (ret== -1)
                                 goto out;
-                        ret=chunk_store(buffer,hash,length,h_length,
+                        ret=chunk_store(list,hash,length,h_length,
                         b_offset,e_offset,fd_stub);
                         if (ret== -1)
                                 goto out;
@@ -122,26 +125,36 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                 while(1)
                 {
                         b_offset=e_offset;
-                        chunk_buffer = get_variable_chunk(fd_input,
-                                &ret,&size);
-                        if(ret == -1)
-                        {
-                                fprintf (stderr, 
-                                        "Error in variable chunking\n");
-                                goto out;
+                        list = NULL;
+                        chunk_flag = 0;
+                        while(chunk_flag == 0) {
+                                chunk_buffer = get_variable_chunk(fd_input,
+                                        &ret,&size,&chunk_flag);
+                                if(ret == -1)
+                                {
+                                        fprintf (stderr, 
+                                                "Error in variable chunking\n");
+                                        goto out;
+                                }
+                                list = insert_vector_element(chunk_buffer, list, &ret);
+                                length += strlen(chunk_buffer);
+                                if(ret == -1)
+                                        goto out;
                         }
-                        length = strlen(chunk_buffer);
-                        e_offset+=length-1;
-                        ret=get_hash(chunk_buffer,length, 
-                                hash_type,&hash,&h_length);
+                        e_offset += length - 1;
+                        ret=get_hash(hash_type,&hash,&h_length,list);
                         if (ret== -1)
                                 goto out;
-                        ret=chunk_store(chunk_buffer,hash,length,
+                        ret=chunk_store(list,hash,length,
                                 h_length,b_offset,e_offset,fd_stub);
                         if (ret== -1)
                                 goto out;
+                        ret = fprintf(fp, "%d\n", length);
+                        if (ret == -1)
+                                goto out;
                         e_offset++;
                         clean_buff(&chunk_buffer);
+                        length = 0;
                         if(size == 0)
                                 break;
                 }
@@ -189,9 +202,9 @@ Input:char *buffer,int length,int hash_type,char** hash,int *h_length
 Output:int
 */
 int 
-get_hash(char *buffer,int length,int hash_type,char** hash,int *h_length)
+get_hash(int hash_type,char** hash,int *h_length, vector_ptr list)
 {
-        
+
         int ret         =       -1;
         char *buf       =       NULL;
         char *buff      =       NULL;
@@ -199,12 +212,12 @@ get_hash(char *buffer,int length,int hash_type,char** hash,int *h_length)
         switch(hash_type)
         {
                 case 1:
-                        buf = str2md5(buffer, length);
+                        buf = str2md5(list);
                         *hash = buf;
-                        *h_length=strlen(buf);;
+                        *h_length=strlen(buf);
                         break;
                 case 2:
-                        buff =sha1(buffer, length);
+                        buff = sha1(list);
                         *hash = buff;
                         *h_length=strlen(buff);
                         break;
@@ -221,7 +234,7 @@ int b_offset,int fd_stub
 Output:int
 */
 int 
-chunk_store(char *buff,char *hash,int length,int h_length,int e_offset,
+chunk_store(vector_ptr list,char *hash,int length,int h_length,int e_offset,
 int b_offset,int fd_stub)
 {
 
@@ -248,8 +261,7 @@ int b_offset,int fd_stub)
         }
         else
         {
-                //scanf("%d",&off);
-                off=insert_block(buff, length);
+                off=insert_block(list, length);
                 if (off== -1)
                 {
                         fprintf(stderr,"%s\n",strerror(errno));

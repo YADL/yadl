@@ -8,7 +8,7 @@ Output:int
 */
 inline void clean_buff(char** buffer)
 {
-        
+
         if(*buffer!=NULL)
         {
                 free(*buffer);

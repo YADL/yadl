@@ -27,7 +27,7 @@ init_catalog_store()
         }
         ret=0;
 out:
-	return ret;
+        return ret;
 
 }
 

@@ -1,39 +1,32 @@
 #include "md5.h"
 
 /*Function to implement md5.
-Input:const char *str, int length
+Input:vector_ptr
 Output:char*
 */
-char* str2md5(const char *str, int length) 
+char* str2md5(vector_ptr list) 
 {
 
         int n;
         MD5_CTX c;
         unsigned char digest[16];
         char *out = (char*)calloc(1,33);
+        vector_ptr temp_node;
 
-        MD5_Init(&c);
-        while (length > 0) 
-        {
-                if (length > 512) 
+        if(list != NULL){
+                MD5_Init(&c);
+                temp_node = list;
+                do {
+                        MD5_Update(&c, temp_node->vector_element, temp_node->length);
+                        temp_node=temp_node->next;
+                }while(temp_node!=NULL);
+
+                MD5_Final(digest, &c);
+
+                for (n = 0; n < 16; ++n)
                 {
-                        MD5_Update(&c, str, 512);
+                        snprintf(&(out[n*2]), 16*2, "%02x", (unsigned int)digest[n]);
                 }
-                else 
-                {
-                        MD5_Update(&c, str, length);
-                }
-                length -= 512;
-                str += 512;
         }
-
-        MD5_Final(digest, &c);
-
-        for (n = 0; n < 16; ++n) 
-        {
-                snprintf(&(out[n*2]), 16*2, "%02x", (unsigned int)digest[n]);
-        }
-
         return out;
-        
 }

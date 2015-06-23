@@ -1,14 +1,23 @@
 #include "block.h"
 #include "clean_buff.h"
+#include "vector.h"
+
 static struct block_store fd;
 
 /*Function to create block file.
 Input:void
 Output:int*/
+
+/*@description:Function to insert block to blockstore
+@in: vector_ptr list-list containing blocks,size_t length-size of block
+@out: int 
+@return: -1 for error and 0 if inserted successfully */
+int insert_block(vector_ptr list,size_t l);
+
 int
 init_block_store()
 {
-        
+
         int ret         =       -1;
 
         fd.fd_block =open("blockstore.txt",O_APPEND|O_CREAT|O_RDWR, S_IWUSR|S_IRUSR);
@@ -25,15 +34,15 @@ out:
 }
 
 /*Function to write contents to a block file.
-Input:char *buffer,size_t length
+Input:vector_ptr list,size_t length
 Output:int
 */
 int 
-insert_block(char *buffer,size_t length)
+insert_block(vector_ptr list,size_t length)
 {
         
-        int ret		=		-1;
-        
+        int ret         =       -1;
+        vector_ptr temp_node    =       NULL;
         if (length<= 0)
         {
                 goto out;
@@ -46,16 +55,23 @@ insert_block(char *buffer,size_t length)
         ret=lseek(fd.fd_block,1,SEEK_CUR);
         if (ret== -1)
                 goto out;
-        if(buffer == NULL)
+        if(list == NULL)
         {
                 fprintf(stderr,"%s\n",strerror(errno));
                 goto out;
         }
-        if (-1 == write(fd.fd_block,buffer,length))
-        {
-                fprintf(stderr,"%s\n",strerror(errno));
-                goto out;
-        }
+
+        do {
+                temp_node = list;
+                if (-1 == write(fd.fd_block,temp_node->vector_element,temp_node->length))
+                {
+                        fprintf(stderr,"%s\n",strerror(errno));
+                        goto out;
+                }
+                list = list->next;
+                free(temp_node);
+        }while(list!=NULL);
+
 out:
         return ret;
 

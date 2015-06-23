@@ -36,7 +36,7 @@ main ( int argc, char *argv[] )
         }
         while (1)
         {
-                out1:printf("\n1.Do you want to dedup a file\n");
+                printf("\n1.Do you want to dedup a file\n");
                 printf("2.Do you want restore a file \n");
                 printf("3.delete a file\n");
                 printf("4.Exit\n");
@@ -100,7 +100,6 @@ main ( int argc, char *argv[] )
                 goto out;
 
         default:printf("\nInvalid choice\nEnter valid choice\n ");
-                goto out1;
         }
 }
 ret=0;

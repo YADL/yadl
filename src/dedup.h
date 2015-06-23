@@ -2,6 +2,7 @@
 #include "config.h"
 #endif
 
+#include "vector.h"
 #include<stdio.h>
 #include<string.h>  
 #include<stdlib.h> 
@@ -34,10 +35,10 @@ int
 dedup_file (char* filename,int chunk_type,int hash_type,int block_size);
 
 /*@description:Function to get hash of a particular block.
-@in: char *buffer-block contents strored in buffer,int length-length of buffer,int hash_type-type of hash(sha1 or md5)
+@in: vector_ptr list-block contents strored in vector,int length-length of buffer,int hash_type-type of hash(sha1 or md5)
 @out: char** hash-hash generated from a block,int *h_length-length of hash generated
 @return: hash */
-int get_hash(char *buffer,int length,int hash_type,char** hash,int *h_length);
+int get_hash(int hash_type,char** hash,int *h_length, vector_ptr list);
 
 /*@description:Function to insert hash to hashstore
 @in: char *buff-buffer that contains hash,int offset-starting position of block
@@ -46,10 +47,10 @@ int get_hash(char *buffer,int length,int hash_type,char** hash,int *h_length);
 int insert_hash(char *buff,int offset);
 
 /*@description:Function to insert block to blockstore
-@in: char *buff-buffer containing block,size_t length-size of block
+@in: vector_ptr list-buffer containing block,size_t length-size of block
 @out: int 
 @return: -1 for error and 0 if inserted successfully */
-int insert_block(char *buff,size_t length);
+int insert_block(vector_ptr list,size_t length);
 
 /*@description:Function to write the full path of file to catalog
 @in: char* filename-filename of file that has been deduped
@@ -94,13 +95,13 @@ char* get_block(int pos);
 int  searchstubhash(int  st1,int b_offset,int e_offset);
 
 /*@description:Function to create hash using md5.
-@in: char *str-Buffer to store block for which the hash is generated,int length-length of block
+@in: vector_ptr list-Vector to store block for which the hash is generated,int length-length of block
 @out: char*-returns hash of block using md5
 @return: hash */
-char *str2md5(const char *str, int length) ;
+char* str2md5(vector_ptr list);
 
 /*@description:Function to create hash using sha1.
-@in: char str[]-Buffer to store block for which the hash is generated,int length-length of block
+@in: vector_ptr list-Vector to store block for which the hash is generated,int length-length of block
 @out: char*-returns hash of block using sha1
 @return: hash */
-char* sha1(char str[],int len);
+char* sha1(vector_ptr list);

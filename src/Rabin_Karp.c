@@ -167,7 +167,7 @@ Output:
         char*           : Chunk to be returned
 */
 char*
-get_variable_chunk (int fd, int *ret, int *size)
+get_variable_chunk (int fd, int *ret, int *size, int *chunk_flag)
 {
 
         int     counter1                =       0;
@@ -307,7 +307,7 @@ get_variable_chunk (int fd, int *ret, int *size)
 
                                 if (*ret == -1)
                                         goto out;
-
+                                *chunk_flag      = 1;
                                 slide_incr       = 0;
                                 hash             = 0;
                                 power            = 0;
@@ -363,6 +363,7 @@ get_variable_chunk (int fd, int *ret, int *size)
                                                 clean_buff(&remaining_window_content);
                                                 clean_buff(&previous_remaining_block);
                                                 previous_block_length = 0;
+                                                chunk_flag = 0;
                                                 return remaining_buffer_content;
                                         }
 
@@ -407,6 +408,7 @@ get_variable_chunk (int fd, int *ret, int *size)
                         &remaining_window_content,
                         start, end, slide_incr);
                         clean_buff(&remaining_buffer_content);
+                        *chunk_flag   = 1;
                         end             = 0;
                         start           = 0;
                         buffer_length   = 0;

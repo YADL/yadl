@@ -41,7 +41,7 @@ restore_file()
         }
         ret=0;
 out:
-	clean_buff(&path);
+        clean_buff(&path);
         return ret;
         
 }
@@ -62,11 +62,11 @@ restorefile(char* path)
         char* buffer            =       NULL;
         char* buffer2           =       NULL;
         int length              =       0;
-        int sd1	                =       -1;
+        int sd1                =       -1;
         struct stat             st;
         int bset                =       0;
         int eset                =       0;
-        int fd2	                =       -1;
+        int fd2                =       -1;
         char* ts1               =       NULL;
         char* ts2               =       NULL;
         char* dir               =       NULL;
@@ -150,13 +150,11 @@ restorefile(char* path)
                 pos=getposition(buffer);
                 if (pos== -1)
                         goto out;
-                printf("\nPosition is %d\n",pos);
                 buffer2=get_block(pos);
                 if (strcmp(buffer2,"")== 0)
                 {
                         goto out;
                 }
-                printf("block  is %s\n",buffer2);
                 ret= write(fd2,buffer2,strlen(buffer2));
                 if (ret< 0)
                 {

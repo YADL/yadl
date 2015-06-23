@@ -76,8 +76,9 @@ get_chunk_buffer(ssize_t *remaining_content_incr, ssize_t *remaining_length,
 Input:
         int fd          : File descriptor of file that to be chuncked
         int *ret        : Pointer to return 0 on success, -1 on failure
+        int *chunk_flag : Pointer to notify the chunk
         int *size       : Poniter to return remaining size of the file
 Output:
         char*           : Chunk to be returned
 */
-char *get_variable_chunk (int fd, int *ret, int *size);
+char *get_variable_chunk (int fd, int *ret, int *size,int *chunk_flag);
