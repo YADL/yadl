@@ -82,12 +82,12 @@ Input:int pos
 Output:char*
 */
 char* 
-get_block(int pos)
+get_block(int pos, int *l)
 {
     
         struct stat             st;
         int     size    =               0;
-        size_t  length  =               0;
+        int    length  =               0;
         int     ret     =               -1;
         char*   buffer  =               NULL;
         int     position=               1;
@@ -106,6 +106,7 @@ get_block(int pos)
         while (size> 0)
         {
                 ret=read(fd.fd_block,&length,INT_SIZE);
+                *l = length;
                 if (ret== -1)
                 {
                         printf("\nError while reading %s",strerror(errno));

@@ -37,6 +37,7 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
         int e_offset            =       0;
         int size                =       0;
         int chunk_flag          =       0;
+        int chunk_length        =       0;
         char* hash              =       NULL;
         char* ts1               =       NULL;
         char* ts2               =       NULL;
@@ -54,7 +55,7 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
         filename1 = basename(ts2);
         sprintf(dir,"%s/",dir);
         sprintf(temp_name,"%sDedup_%s",dir,filename1);
-        fd_input =open(filename,O_APPEND|O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
+        fd_input = open(filename,O_APPEND|O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
         if (fd_input< 1)
         {
                 fprintf(stderr,"%s\n",strerror(errno));
@@ -92,7 +93,9 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                         &buffer, &length);
                         if (ret<= 0)
                                 break;
-                        list = insert_vector_element(buffer, list, &ret);
+                        list = insert_vector_element(buffer, list, &ret, length);
+                        if (ret== -1)
+                                goto out;
                         e_offset+=length-1;
                         size=size-length;
                         ret=get_hash(hash_type,&hash,&h_length,list);
@@ -129,15 +132,15 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                         chunk_flag = 0;
                         while(chunk_flag == 0) {
                                 chunk_buffer = get_variable_chunk(fd_input,
-                                        &ret,&size,&chunk_flag);
+                                        &ret,&size,&chunk_flag, &chunk_length);
                                 if(ret == -1)
                                 {
                                         fprintf (stderr, 
                                                 "Error in variable chunking\n");
                                         goto out;
                                 }
-                                list = insert_vector_element(chunk_buffer, list, &ret);
-                                length += strlen(chunk_buffer);
+                                list = insert_vector_element(chunk_buffer, list, &ret, chunk_length);
+                                length += chunk_length;
                                 if(ret == -1)
                                         goto out;
                         }
@@ -149,9 +152,7 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                                 h_length,b_offset,e_offset,fd_stub);
                         if (ret== -1)
                                 goto out;
-                        ret = fprintf(fp, "%d\n", length);
-                        if (ret == -1)
-                                goto out;
+                        fprintf(fp, "%d\n", length);
                         e_offset++;
                         clean_buff(&chunk_buffer);
                         length = 0;
@@ -187,10 +188,10 @@ int *length)
         int ret         =       -1;
         
         *buffer=(char *)calloc(1,block_size+1);
-        ret=read(fd_input,*buffer,block_size);
+        ret=read(fd_input, *buffer, block_size);
         if (ret< 1)
                 goto out;
-        *length=strlen(*buffer);
+        *length = block_size;
 out:
         return ret;
 

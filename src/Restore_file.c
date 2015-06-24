@@ -53,7 +53,7 @@ Output:int
 int
 restorefile(char* path)
 {
-        
+        int l                   =       0;
         int ret                 =      -1;
         char temp_name[NAME_SIZE]    =               "";
         int size                =       0;
@@ -71,7 +71,7 @@ restorefile(char* path)
         char* ts2               =       NULL;
         char* dir               =       NULL;
         char* filename1         =       NULL;
-        
+
         ts1 = strdup(path);
         ts2 = strdup(path);
         dir = dirname(ts1);
@@ -150,12 +150,12 @@ restorefile(char* path)
                 pos=getposition(buffer);
                 if (pos== -1)
                         goto out;
-                buffer2=get_block(pos);
-                if (strcmp(buffer2,"")== 0)
-                {
+                buffer2=get_block(pos, &l);
+                if (buffer2 == NULL) {
                         goto out;
                 }
-                ret= write(fd2,buffer2,strlen(buffer2));
+
+                ret= write(fd2,buffer2, l);
                 if (ret< 0)
                 {
                         fprintf(stderr,"%s\n",strerror(errno));

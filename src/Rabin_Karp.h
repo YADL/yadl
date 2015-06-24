@@ -70,7 +70,7 @@ int
 get_chunk_buffer(ssize_t *remaining_content_incr, ssize_t *remaining_length,
         char **chunk_buffer, char **buffer, char **remaining_buffer_content,
         char **remaining_window_content, ssize_t start, ssize_t end,
-        ssize_t slide_incr);
+        ssize_t slide_incr, int *chunk_length);
 
 /*@description:Function to generate variable size chunk using rabin-karp.
 Input:
@@ -81,4 +81,4 @@ Input:
 Output:
         char*           : Chunk to be returned
 */
-char *get_variable_chunk (int fd, int *ret, int *size,int *chunk_flag);
+char *get_variable_chunk (int fd, int *ret, int *size,int *chunk_flag, int *chunk_length);

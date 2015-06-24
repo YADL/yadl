@@ -28,4 +28,4 @@ Input:
 Output:
         vector_ptr      : Vector that contains the buffer content
 */
-vector_ptr insert_vector_element(void *data, vector_ptr list, int *ret);
+vector_ptr insert_vector_element(void *data, vector_ptr list, int *ret, int length);

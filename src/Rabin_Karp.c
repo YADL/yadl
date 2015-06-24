@@ -111,11 +111,11 @@ int
 get_chunk_buffer(ssize_t *remaining_content_incr, ssize_t *remaining_length,
         char **chunk_buffer, char **buffer, char **remaining_buffer_content,
         char **remaining_window_content, ssize_t start, ssize_t end,
-        ssize_t slide_incr)
+        ssize_t slide_incr, int *chunk_length)
 {
 
         ssize_t chunk_size      =       0;
-        int     ret             =       -1;
+        int     ret             =      -1;
 
         /*Generates the chunk by combining previous
         buffer content with current buffer content upto
@@ -133,7 +133,7 @@ get_chunk_buffer(ssize_t *remaining_content_incr, ssize_t *remaining_length,
                         *remaining_length);
                 memcpy (*chunk_buffer + *remaining_length, *buffer,
                         end);
-
+                *chunk_length = *remaining_length + end;
                 *remaining_content_incr  = 0;
                 *remaining_length        = 0;
                 clean_buff(remaining_window_content);
@@ -142,16 +142,15 @@ get_chunk_buffer(ssize_t *remaining_content_incr, ssize_t *remaining_length,
         /*Generates the chunk from previous chunk
         boundary to where the fingerprint is matched*/
         else {
-                chunk_size = N+slide_incr;
+                *chunk_length = N+slide_incr;
                 *chunk_buffer = (char *)calloc
-                        (1, chunk_size+1);
+                        (1, *chunk_length+1);
                 if (*chunk_buffer == NULL) {
                         fprintf (stderr, "Error in buffer allocation\n");
                         goto out;
                 }
-
                 memcpy (*chunk_buffer,
-                        *buffer + start, chunk_size);
+                        *buffer + start, *chunk_length);
         }
         ret = 0;
 out:
@@ -167,7 +166,7 @@ Output:
         char*           : Chunk to be returned
 */
 char*
-get_variable_chunk (int fd, int *ret, int *size, int *chunk_flag)
+get_variable_chunk (int fd, int *ret, int *size, int *chunk_flag, int *chunk_length)
 {
 
         int     counter1                =       0;
@@ -303,7 +302,7 @@ get_variable_chunk (int fd, int *ret, int *size, int *chunk_flag)
                                 &chunk_buffer, &buffer,
                                 &remaining_buffer_content,
                                 &remaining_window_content,
-                                start, end, slide_incr);
+                                start, end, slide_incr, chunk_length);
 
                                 if (*ret == -1)
                                         goto out;
@@ -359,6 +358,7 @@ get_variable_chunk (int fd, int *ret, int *size, int *chunk_flag)
                                         match with finger print even after
                                         sliding whole window to current buffer*/
                                         if (remaining_content_incr >= N) {
+                                                *chunk_length = remaining_length;
                                                 remaining_length = buffer_length;
                                                 clean_buff(&remaining_window_content);
                                                 clean_buff(&previous_remaining_block);
@@ -406,7 +406,9 @@ get_variable_chunk (int fd, int *ret, int *size, int *chunk_flag)
                         &chunk_buffer, &buffer,
                         &previous_remaining_block,
                         &remaining_window_content,
-                        start, end, slide_incr);
+                        start, end, slide_incr, chunk_length);
+                        if(remaining_length < N)
+                                *chunk_length = remaining_length;
                         clean_buff(&remaining_buffer_content);
                         *chunk_flag   = 1;
                         end             = 0;

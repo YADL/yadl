@@ -21,7 +21,7 @@ Input:
 Output:
         vector_ptr      : Vector that contains the buffer content
 */
-vector_ptr insert_vector_element(void *data, vector_ptr list, int *ret)
+vector_ptr insert_vector_element(void *data, vector_ptr list, int *ret, int length)
 {
 
         vector_ptr      new_node        =       NULL;
@@ -32,7 +32,7 @@ vector_ptr insert_vector_element(void *data, vector_ptr list, int *ret)
                 *ret = -1;
                 goto out;
         }
-        new_node->length = strlen(data);
+        new_node->length = length;
         new_node->vector_element = (void*)calloc(1, new_node->length + 1);
         if(new_node->vector_element == NULL) {
                 *ret = -1;
