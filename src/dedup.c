@@ -241,7 +241,6 @@ chunk_store(vector_ptr list,char *hash,int length,int h_length,int e_offset,
 int b_offset,int fd_stub)
 {
 
-        int off                 =       -1;
         int ret                 =       -1;
 
 

@@ -58,7 +58,6 @@ restorefile(char* path)
         char temp_name[NAME_SIZE]    =               "";
         int size                =       0;
         int size1               =       0;
-        int     pos             =       0;
         char* buffer            =       NULL;
         char* buffer2           =       NULL;
         int length              =       0;

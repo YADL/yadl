@@ -6,7 +6,6 @@ int insert_block_to_file(char *hash,vector_ptr list)
 	DIR *dp1 = NULL; 
 	DIR *dp2 = NULL; 
 	DIR *dp3 = NULL;
-	struct dirent *dptr = NULL;
 	int ret = 0;
 	int fd = -1;
 	vector_ptr temp_node = NULL;
@@ -83,11 +82,9 @@ char
 *get_block(char *hash,int *length)
 {
 	DIR *dp1 = NULL; 
-	DIR *dp2 = NULL; 
-	struct dirent *dptr = NULL;
+	DIR *dp2 = NULL;
 	int ret = 0;
 	int fd = -1;
-	vector_ptr temp_node = NULL;
 	char path[1024],filename[50];
 	char *buffer = NULL;
 	struct stat st;
