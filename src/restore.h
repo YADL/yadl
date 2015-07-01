@@ -47,4 +47,4 @@ int restore_file();
 @in: int pos-position of block,
 @out: char*
 @return: block */
-char* get_block(int pos, int *length);
+char* get_block(char *hash, int *length);

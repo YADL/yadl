@@ -147,10 +147,7 @@ restorefile(char* path)
                         goto out;
                 }
                 buffer[length]='\0';
-                pos=getposition(buffer);
-                if (pos== -1)
-                        goto out;
-                buffer2=get_block(pos, &l);
+                buffer2=get_block(buffer, &l);
                 if (buffer2 == NULL) {
                         goto out;
                 }

@@ -86,7 +86,7 @@ int write_to_stub(char buff[],size_t l,int filedes,int b_offset,int e_offset);
 @in: int pos-position of block,
 @out: char*
 @return: block */
-char* get_block(int pos, int *l);
+char* get_blocks(int pos, int *l);
 
 /*@description:Function to check single instance of block of specified position
 @in: int  st1-filedescriptor of stub,int b_offset-beginning offset of block,int e_offset-ending offset of block
@@ -105,3 +105,5 @@ char* str2md5(vector_ptr list);
 @out: char*-returns hash of block using sha1
 @return: hash */
 char* sha1(vector_ptr list);
+
+int insert_block_to_file(char *hash,vector_ptr list);

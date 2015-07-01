@@ -43,7 +43,7 @@ out:
 /*Function to check whether a hash of specfic range is present in stub or not.
 Input:int fd_stub,int b_offset,int e_offset
 Output:int
-*/
+
 int
 searchstubhash(int fd_stub,int b_offset,int e_offset)
 {
@@ -114,5 +114,5 @@ searchstubhash(int fd_stub,int b_offset,int e_offset)
 out:
         return ret;
 
-}
+}*/
 

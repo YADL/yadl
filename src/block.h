@@ -39,7 +39,7 @@ int init_block_store();
 @in: int pos-position of block,
 @out: char*
 @return: block */
-char* get_block(int pos, int *l);
+char* get_block(char *hash, int *l);
 
 /*@description:Function to close filedescriptor of blockstore
 @in: void

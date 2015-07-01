@@ -150,9 +150,11 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                                 goto out;
                         ret=chunk_store(list,hash,length,
                                 h_length,b_offset,e_offset,fd_stub);
+
                         if (ret== -1)
                                 goto out;
-                        fprintf(fp, "%d\n", length);
+			//printf("remaining = %d\n",size);
+                        //printf("%d\t", length);
                         e_offset++;
                         clean_buff(&chunk_buffer);
                         length = 0;
@@ -242,51 +244,20 @@ int b_offset,int fd_stub)
         int off                 =       -1;
         int ret                 =       -1;
 
-        ret=searchhash(hash);
-        if( ret== -1)
+
+        ret = insert_block_to_file(hash,list);
+        if (ret== -1)
         {
+        	fprintf(stderr,"%s\n",strerror(errno));
                 goto out;
         }
-        if (ret== 0)
+
+        ret=write_to_stub(hash,h_length,fd_stub,b_offset,
+        	e_offset);
+       	if (ret== -1)
         {
-                ret=searchstubhash(fd_stub, b_offset,e_offset);
-                if (ret== -1)
-                        goto  out;
-                if (ret== 1)
-                {
-                        ret=write_to_stub(hash,h_length,fd_stub,b_offset,
-                        e_offset);
-                        if (ret== -1)
-                                goto out;
-                }
-        }
-        else
-        {
-                off=insert_block(list, length);
-                if (off== -1)
-                {
-                        fprintf(stderr,"%s\n",strerror(errno));
-                        goto out;
-                }
-                ret=insert_hash(hash,off);
-                if (ret== -1)
-                {
-                        fprintf(stderr,"%s\n",strerror(errno));;
-                        goto out;
-                }
-                ret=searchstubhash(fd_stub, b_offset,e_offset);
-                if (ret== -1)
-                        goto  out;
-                if (ret== 1)
-                {
-                        ret=write_to_stub(hash,h_length,fd_stub,b_offset,
-                        e_offset);
-                        if (ret== -1)
-                        {
-                                fprintf(stderr,"%s\n",strerror(errno));
-                                goto out;
-                        }
-                }
+               	fprintf(stderr,"%s\n",strerror(errno));
+                goto out;
         }
         ret=0;
 out:

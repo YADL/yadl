@@ -82,7 +82,7 @@ Input:int pos
 Output:char*
 */
 char* 
-get_block(int pos, int *l)
+get_blocks(int pos, int *l)
 {
     
         struct stat             st;
