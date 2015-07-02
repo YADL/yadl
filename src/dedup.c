@@ -18,14 +18,14 @@ int searchhash(char *out);
 int get_next_chunk(int fd_input,int chunk_type,
         int block_size,char** buffer, int *length);
 int chunk_store(vector_ptr list,char *hash,int length,
-        int h_length,int e_offset, int b_offset,int fd_stub);
+        int h_length,int e_offset, int b_offset,int fd_stub,int store);
 /*
 Function to dedup a file whose path is specified by the user.
 Input:char* filename,int chunk_type,int hash_type,int block_size
 Output:int
 */
 int
-dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
+dedup_file (char* filename,int chunk_type,int hash_type,int block_size,int store)
 {
 
         int ret                 =       -1;
@@ -77,6 +77,11 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                 fprintf(stderr,"%s\n",strerror(errno));
                 goto out;
         }
+        if(write (fd_stub, &store, int_size)==-1)
+        {
+                fprintf(stderr,"%s\n",strerror(errno));
+                goto out;
+        }
         fstat(fd_input, &st);
         size = st.st_size;
         if(chunk_type == 1)
@@ -102,7 +107,7 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                         if (ret== -1)
                                 goto out;
                         ret=chunk_store(list,hash,length,h_length,
-                        b_offset,e_offset,fd_stub);
+                        b_offset,e_offset,fd_stub,store);
                         if (ret== -1)
                                 goto out;
                         e_offset++;
@@ -149,12 +154,10 @@ dedup_file (char* filename,int chunk_type,int hash_type,int block_size)
                         if (ret== -1)
                                 goto out;
                         ret=chunk_store(list,hash,length,
-                                h_length,b_offset,e_offset,fd_stub);
-
+                                h_length,b_offset,e_offset,fd_stub,store);
                         if (ret== -1)
                                 goto out;
-			//printf("remaining = %d\n",size);
-                        //printf("%d\t", length);
+                        fprintf(fp, "%d\n", length);
                         e_offset++;
                         clean_buff(&chunk_buffer);
                         length = 0;
@@ -238,25 +241,62 @@ Output:int
 */
 int 
 chunk_store(vector_ptr list,char *hash,int length,int h_length,int e_offset,
-int b_offset,int fd_stub)
+int b_offset,int fd_stub,int store)
 {
 
+        int off                 =       -1;
         int ret                 =       -1;
 
-
-        ret = insert_block_to_file(hash,list);
-        if (ret== -1)
-        {
-        	fprintf(stderr,"%s\n",strerror(errno));
-                goto out;
-        }
-
-        ret=write_to_stub(hash,h_length,fd_stub,b_offset,
-        	e_offset);
-       	if (ret== -1)
-        {
-               	fprintf(stderr,"%s\n",strerror(errno));
-                goto out;
+        if(store == 0) {
+                ret=searchhash(hash);
+                if( ret== -1)
+                {
+                        goto out;
+                }
+                if (ret== 0)
+                {
+                         ret=write_to_stub(hash,h_length,fd_stub,b_offset,
+                                e_offset);
+                         if (ret== -1) {
+                                goto out;
+                        }
+                }
+                else
+                {
+                        off=insert_block(list, length);
+                        if (off== -1)
+                        {
+                                fprintf(stderr,"%s\n",strerror(errno));
+                                goto out;
+                        }
+                        ret=insert_hash(hash,off);
+                        if (ret== -1)
+                        {
+                                fprintf(stderr,"%s\n",strerror(errno));;
+                                goto out;
+                        }
+                        ret = write_to_stub(hash,h_length,fd_stub,b_offset,
+                                e_offset);
+                        if (ret== -1)
+                        {
+                                fprintf(stderr,"%s\n",strerror(errno));
+                                goto out;
+                        }
+                }
+        } else {
+                ret = insert_block_to_object(hash,list);
+                if (ret== -1)
+                {
+                        fprintf(stderr,"%s\n",strerror(errno));
+                        goto out;
+                }
+                ret=write_to_stub(hash,h_length,fd_stub,b_offset,
+                        e_offset);
+                if (ret== -1)
+                {
+                        fprintf(stderr,"%s\n",strerror(errno));
+                        goto out;
+                }
         }
         ret=0;
 out:

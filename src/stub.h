@@ -29,9 +29,3 @@
 @out: int 
 @return: -1 for error and 0 if found. */
 int write_to_stub(char buff[],size_t l,int fd_stub,int b_offset,int e_offset);
-
-/*@description:Function to check single instance of block of specified position
-@in: int  fd_stub-filedescriptor of stub,int b_offset-beginning offset of block,int e_offset-ending offset of block
-@out: int 
-@return: -1 for error and 0 if found. */
-int searchstubhash(int fd_stub,int b_offset,int e_offset);

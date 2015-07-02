@@ -25,14 +25,14 @@
 #include<openssl/ssl.h>
 #include<openssl/sha.h>
 #endif
-
+#define int_size sizeof(int)
 /*
 Function to dedup a file whose path is specified by the user.
 Input:char* filename,int chunk_type,int hash_type,int block_size
 Output:int
 */
 int
-dedup_file (char* filename,int chunk_type,int hash_type,int block_size);
+dedup_file (char* filename,int chunk_type,int hash_type,int block_size,int store);
 
 /*@description:Function to get hash of a particular block.
 @in: vector_ptr list-block contents strored in vector,int length-length of buffer,int hash_type-type of hash(sha1 or md5)
@@ -86,7 +86,7 @@ int write_to_stub(char buff[],size_t l,int filedes,int b_offset,int e_offset);
 @in: int pos-position of block,
 @out: char*
 @return: block */
-char* get_blocks(int pos, int *l);
+char* get_block(int pos, int *l);
 
 /*@description:Function to check single instance of block of specified position
 @in: int  st1-filedescriptor of stub,int b_offset-beginning offset of block,int e_offset-ending offset of block
@@ -106,4 +106,8 @@ char* str2md5(vector_ptr list);
 @return: hash */
 char* sha1(vector_ptr list);
 
-int insert_block_to_file(char *hash,vector_ptr list);
+/*@description:Function to insert block to blockstore object
+@in: vector_ptr list-buffer containing block,size_t length-size of block
+@out: int 
+@return: -1 for error and 0 if inserted successfully */
+int insert_block_to_object(char *hash,vector_ptr list);

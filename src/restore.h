@@ -47,4 +47,10 @@ int restore_file();
 @in: int pos-position of block,
 @out: char*
 @return: block */
-char* get_block(char *hash, int *length);
+char* get_block(int pos, int *length);
+
+/*@description:Function to get specific block from object
+@in: char *hash - hash of block
+@out: char*
+@return: block */
+char *get_block_from_object(char *hash,int *length);

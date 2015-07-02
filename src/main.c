@@ -17,7 +17,8 @@ main ( int argc, char *argv[] )
         int ch              =       0;
         int block_size      =       0;
         int ret             =       -1;
-        
+        int store           =       0;
+
         filename=(char*)calloc(1,FILE_SIZE);
         ret=init_block_store();
         if (ret== -1)
@@ -83,7 +84,13 @@ main ( int argc, char *argv[] )
                                 break;
                         }
                 }
-                ret=dedup_file(filename,chunk_type,hash_type,block_size);
+                printf("\nSelect the store type\n");
+                printf("0 : File Store(default)\n1 : Object Store\n");
+                scanf("%d",&store);
+                if( store != 1 && store != 0)
+                        printf("Invalid store type. Default store selected\n");
+                printf("Deduplication in progress...\n");
+                ret=dedup_file(filename,chunk_type,hash_type,block_size,store);
                 if (ret== -1)
                         goto out;
                 break;

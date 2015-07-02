@@ -31,8 +31,8 @@ restore_file()
                 }
                 if (ret== 1)
                 {
-                        printf("\nPlease enter valid  full path of file");
-                        goto out4;
+                        printf("\nInvalid path");
+                        goto out;
                 }
                 ret=restorefile(path);
         if (ret== -1)
@@ -58,6 +58,7 @@ restorefile(char* path)
         char temp_name[NAME_SIZE]    =               "";
         int size                =       0;
         int size1               =       0;
+        int     pos             =       0;
         char* buffer            =       NULL;
         char* buffer2           =       NULL;
         int length              =       0;
@@ -66,6 +67,7 @@ restorefile(char* path)
         int bset                =       0;
         int eset                =       0;
         int fd2                =       -1;
+        int store               =       -1;
         char* ts1               =       NULL;
         char* ts2               =       NULL;
         char* dir               =       NULL;
@@ -118,6 +120,12 @@ restorefile(char* path)
                 ret=-1;
                 goto out;
         }
+        ret=read(sd1,&store,int_size);
+        if (ret== -1)
+        {
+                fprintf(stderr,"%s\n",strerror(errno));
+                goto out;
+        }
         while(size>0)
         {
                 ret=read(sd1,&length,int_size);
@@ -146,11 +154,19 @@ restorefile(char* path)
                         goto out;
                 }
                 buffer[length]='\0';
-                buffer2=get_block(buffer, &l);
-                if (buffer2 == NULL) {
-                        goto out;
+                if(store == 0) {
+                        pos=getposition(buffer);
+                        if (pos== -1)
+                                goto out;
+                        buffer2=get_block(pos, &l);
+                        if (buffer2 == NULL) {
+                                goto out;
+                        }
+                } else {
+                        buffer2=get_block_from_object(buffer, &l);
+                        if (buffer2 == NULL)
+                                goto out;
                 }
-
                 ret= write(fd2,buffer2, l);
                 if (ret< 0)
                 {
