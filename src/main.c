@@ -86,9 +86,11 @@ main ( int argc, char *argv[] )
                 }
                 printf("\nSelect the store type\n");
                 printf("0 : File Store(default)\n1 : Object Store\n");
-                scanf("%d",&store);
-                if( store != 1 && store != 0)
+                while(scanf("%d",&store) <= 0);
+                if( store != 1 && store != 0) {
                         printf("Invalid store type. Default store selected\n");
+                        store = 0;
+                }
                 printf("Deduplication in progress...\n");
                 ret=dedup_file(filename,chunk_type,hash_type,block_size,store);
                 if (ret== -1)
