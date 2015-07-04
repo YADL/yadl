@@ -54,3 +54,4 @@ int comparepath(char out[]);
 @out: int 
 @return: -1 for error and 0 if closed successfully */
 int fini_catalog_store();
+

@@ -25,7 +25,7 @@
 
 struct block_store
 {
-	size_t fd_block;
+        size_t fd_block;
 };
 
 

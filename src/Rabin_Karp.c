@@ -407,7 +407,7 @@ get_variable_chunk (int fd, int *ret, int *size, int *chunk_flag, int *chunk_len
                         &previous_remaining_block,
                         &remaining_window_content,
                         start, end, slide_incr, chunk_length);
-                        if(remaining_length < N)
+                        if (remaining_length < N)
                                 *chunk_length = remaining_length;
                         clean_buff(&remaining_buffer_content);
                         *chunk_flag   = 1;
