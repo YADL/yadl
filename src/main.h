@@ -8,5 +8,7 @@
 #include<fcntl.h>
 #define FILE_SIZE  200
 
+enum stores { default_store = 0, object_store };
+
 
 

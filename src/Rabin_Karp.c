@@ -111,11 +111,11 @@ int
 get_chunk_buffer(ssize_t *remaining_content_incr, ssize_t *remaining_length,
         char **chunk_buffer, char **buffer, char **remaining_buffer_content,
         char **remaining_window_content, ssize_t start, ssize_t end,
-        ssize_t slide_incr)
+        ssize_t slide_incr, int *chunk_length)
 {
 
         ssize_t chunk_size      =       0;
-        int     ret             =       -1;
+        int     ret             =      -1;
 
         /*Generates the chunk by combining previous
         buffer content with current buffer content upto
@@ -133,7 +133,7 @@ get_chunk_buffer(ssize_t *remaining_content_incr, ssize_t *remaining_length,
                         *remaining_length);
                 memcpy (*chunk_buffer + *remaining_length, *buffer,
                         end);
-
+                *chunk_length = *remaining_length + end;
                 *remaining_content_incr  = 0;
                 *remaining_length        = 0;
                 clean_buff(remaining_window_content);
@@ -142,16 +142,15 @@ get_chunk_buffer(ssize_t *remaining_content_incr, ssize_t *remaining_length,
         /*Generates the chunk from previous chunk
         boundary to where the fingerprint is matched*/
         else {
-                chunk_size = N+slide_incr;
+                *chunk_length = N+slide_incr;
                 *chunk_buffer = (char *)calloc
-                        (1, chunk_size+1);
+                        (1, *chunk_length+1);
                 if (*chunk_buffer == NULL) {
                         fprintf (stderr, "Error in buffer allocation\n");
                         goto out;
                 }
-
                 memcpy (*chunk_buffer,
-                        *buffer + start, chunk_size);
+                        *buffer + start, *chunk_length);
         }
         ret = 0;
 out:
@@ -167,27 +166,30 @@ Output:
         char*           : Chunk to be returned
 */
 char*
-get_variable_chunk (int fd, int *ret, int *size)
+get_variable_chunk (int fd, int *ret, int *size, int *chunk_flag, int *chunk_length)
 {
 
         int     counter1                =       0;
         int     counter2                =       0;
-        int     flag                    =       0;
+        static int flag;
         int     remaining_flag          =       0;
+
         static char *buffer;
+        static char *previous_remaining_block;
 
         char    *temp_buffer              =       NULL;
         char    *chunk_buffer             =       NULL;
         char    *remaining_buffer_content =       NULL;
         char    *remaining_window_content =       NULL;
 
-        y_uint32 hash    =      0;
-        y_uint32 power   =      0;
+        static y_uint32 hash;
+        static y_uint32 power;
 
         static ssize_t start;
         static ssize_t end;
         static ssize_t remaining_length;
         static ssize_t buffer_length;
+        static ssize_t previous_block_length;
 
         ssize_t remaining_content_incr  =       0;
         ssize_t slide_incr              =       0;
@@ -216,6 +218,7 @@ get_variable_chunk (int fd, int *ret, int *size)
                                 *size = 0;
                                 return buffer;
                         }
+
                         start                   =       0;
                         slide_incr              =       0;
                         end                     =       N;
@@ -299,16 +302,20 @@ get_variable_chunk (int fd, int *ret, int *size)
                                 &chunk_buffer, &buffer,
                                 &remaining_buffer_content,
                                 &remaining_window_content,
-                                start, end, slide_incr);
+                                start, end, slide_incr, chunk_length);
 
                                 if (*ret == -1)
                                         goto out;
-
+                                *chunk_flag      = 1;
                                 slide_incr       = 0;
                                 hash             = 0;
+                                power            = 0;
+                                flag             = 0;
                                 start            = end;
                                 remaining_length = buffer_length - end;
-                                end              += N;
+                                end += N;
+                                clean_buff(&previous_remaining_block);
+                                previous_block_length = 0;
                                 return chunk_buffer;
                         } else {
 
@@ -345,6 +352,21 @@ get_variable_chunk (int fd, int *ret, int *size)
                                 if ((remaining_content_incr == 0 ||
                                         remaining_content_incr >= N) &&
                                         counter1 == 0 && counter2 == 0) {
+
+                                        /*Returns the remaining content of
+                                         previous buffer when there is no
+                                        match with finger print even after
+                                        sliding whole window to current buffer*/
+                                        if (remaining_content_incr >= N) {
+                                                *chunk_length = remaining_length;
+                                                remaining_length = buffer_length;
+                                                clean_buff(&remaining_window_content);
+                                                clean_buff(&previous_remaining_block);
+                                                previous_block_length = 0;
+                                                chunk_flag = 0;
+                                                return remaining_buffer_content;
+                                        }
+
                                         hash = (hash * PRIME - power *
                                         buffer[start+slide_incr] +
                                         buffer[end]) % M;
@@ -356,6 +378,7 @@ get_variable_chunk (int fd, int *ret, int *size)
                 }
                 /*Keeps track of remaining buffers content which is not
                  matched with fingerprint*/
+
                 if (remaining_length > 0) {
                         *ret = get_remaining_buffer_content
                                 (&remaining_buffer_content,
@@ -364,22 +387,47 @@ get_variable_chunk (int fd, int *ret, int *size)
                         if (*ret == -1)
                                 goto out;
                 }
-                end = 0;
+
+                if (previous_block_length == 0 && remaining_length > 0) {
+                        previous_remaining_block = (char *)calloc(1,
+                        remaining_length + 1);
+                        memcpy(previous_remaining_block,
+                        remaining_buffer_content, remaining_length);
+                        previous_block_length += remaining_length;
+                }
+
                 *size -= buffer_length;
-                clean_buff(&buffer);
-                if (*size == 0) {
+                /*If buffer content is not matched with fingerprint and it has
+                reached end of file, consider remaining buffer content as
+                chunk*/
+                if (remaining_length > 0 && *size == 0) {
+                        *ret = get_chunk_buffer
+                        (&remaining_content_incr, &previous_block_length,
+                        &chunk_buffer, &buffer,
+                        &previous_remaining_block,
+                        &remaining_window_content,
+                        start, end, slide_incr, chunk_length);
+                        if (remaining_length < N)
+                                *chunk_length = remaining_length;
+                        clean_buff(&remaining_buffer_content);
+                        *chunk_flag   = 1;
+                        end             = 0;
                         start           = 0;
                         buffer_length   = 0;
-                }
-        }
-        /*If buffer content is not matched with fingerprint and it has
-        reached end of file, consider remaining buffer content as
-        chunk*/
-        if (remaining_length > 0) {
-                if (remaining_length >= N)
+                        hash            = 0;
+                        power           = 0;
+                        flag            = 0;
+                        remaining_length = 0;
+                        buffer_length   = 0;
+                        previous_block_length = 0;
+                        clean_buff(&buffer);
                         clean_buff(&remaining_window_content);
-                remaining_length = 0;
-                return remaining_buffer_content;
+                        clean_buff(&remaining_buffer_content);
+                        clean_buff(&previous_remaining_block);
+                        return chunk_buffer;
+                }
+                end = 0;
+                clean_buff(&buffer);
         }
         *ret = 0;
 out:

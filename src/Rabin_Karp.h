@@ -9,10 +9,10 @@
 #include<string.h>
 
 #define PRIME 23
-#define N 200
-#define FINGER_PRINT 34
-#define BUFFER_LEN 1024
-#define M 40
+#define N 2048
+#define FINGER_PRINT 938
+#define BUFFER_LEN 10240
+#define M 1021
 
 typedef unsigned int y_uint32;
 
@@ -70,14 +70,15 @@ int
 get_chunk_buffer(ssize_t *remaining_content_incr, ssize_t *remaining_length,
         char **chunk_buffer, char **buffer, char **remaining_buffer_content,
         char **remaining_window_content, ssize_t start, ssize_t end,
-        ssize_t slide_incr);
+        ssize_t slide_incr, int *chunk_length);
 
 /*@description:Function to generate variable size chunk using rabin-karp.
 Input:
         int fd          : File descriptor of file that to be chuncked
         int *ret        : Pointer to return 0 on success, -1 on failure
+        int *chunk_flag : Pointer to notify the chunk
         int *size       : Poniter to return remaining size of the file
 Output:
         char*           : Chunk to be returned
 */
-char *get_variable_chunk (int fd, int *ret, int *size);
+char *get_variable_chunk (int fd, int *ret, int *size,int *chunk_flag, int *chunk_length);

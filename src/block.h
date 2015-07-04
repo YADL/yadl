@@ -25,7 +25,7 @@
 
 struct block_store
 {
-	size_t fd_block;
+        size_t fd_block;
 };
 
 
@@ -35,17 +35,11 @@ struct block_store
 @return: -1 for error and 0 if created successfully */
 int init_block_store();
 
-/*@description:Function to insert block to blockstore
-@in: char *buff-buffer containing block,size_t length-size of block
-@out: int 
-@return: -1 for error and 0 if inserted successfully */
-int insert_block(char *buff,size_t l);
-
 /*@description:Function to get specific block from specified position 
 @in: int pos-position of block,
 @out: char*
 @return: block */
-char* get_block(int pos);
+char* get_block(int pos, int *l);
 
 /*@description:Function to close filedescriptor of blockstore
 @in: void
