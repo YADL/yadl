@@ -95,7 +95,7 @@ char
         DIR *dp2 = NULL;
         int ret = 0;
         int fd = -1;
-        char path[1024], filename[50];
+        char path[1024], filename[1024];
         char *buffer = NULL;
         struct stat st;
 
@@ -121,7 +121,7 @@ char
         sprintf(filename, "%s/%s.txt", path, hash);
         if (stat (filename, &st) == 0) {
                 *length = st.st_size;
-                fd = open(filename, O_RDONLY);
+                fd = open(filename, O_RDONLY, S_IRUSR|S_IWUSR);
                 if (fd < 1) {
                         fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
