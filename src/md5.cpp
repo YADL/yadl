@@ -4,7 +4,7 @@
 Input:vector_ptr
 Output:char*
 */
-char *str2md5(vector_ptr list)
+char *md5(vector_ptr list)
 {
 
         int n;

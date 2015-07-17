@@ -1,4 +1,4 @@
-#include "object_store.h"
+#include "ydl_object_store.h"
 
 /*Function to insert block to blockstore object
 Input:  vector_ptr list : buffer containing block,size_t length-size of block
@@ -6,7 +6,7 @@ Input:  vector_ptr list : buffer containing block,size_t length-size of block
 Output: int : -1 for error and 0 if inserted successfully */
 
 int
-insert_block_to_object(char *hash, vector_ptr list)
+ydl_object_store::insert_block_to_object(char *hash, vector_ptr list)
 {
 
         DIR *dp1 = NULL;
@@ -87,8 +87,8 @@ out:
 Input:  int *length     : length of the hash
         char *hash      : hash value of the block
 Output: int : -1 for error and 0 if inserted successfully */
-char
-*get_block_from_object(char *hash, int *length)
+char*
+ydl_object_store::get_block_from_object(char *hash, int *length)
 {
 
         DIR *dp1 = NULL;
