@@ -1,11 +1,4 @@
-#include "dedup.h"
-#include "clean_buff.h"
-#include "main.h"
-#include "Rabin_Karp.h"
-#include "catalog.h"
-#include "hash.h"
-
-#define NAME_SIZE 100
+#include "ydl_dedup.h"
 
 /*
 Function to dedup a file whose path is specified by the user.
@@ -13,8 +6,8 @@ Input:char* filename,int chunk_type,int hash_type,int block_size
 Output:int
 */
 int
-dedup_file (char *filename, int chunk_type, int hash_type, int block_size,
-int store_type)
+ydl_dedup::dedup_file (char *filename, int chunk_type, int hash_type,
+                        int block_size, int store_type)
 {
 
         int ret                 =       -1;
@@ -38,6 +31,8 @@ int store_type)
         FILE *fp                =       NULL;
         struct stat st;
         vector_ptr list         =       NULL;
+        ydl_catalog catalog;
+        ydl_rabin_karp rabin_karp;
 
         ts1 = strdup(filename);
         ts2 = strdup(filename);
@@ -50,7 +45,7 @@ int store_type)
                 fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
         }
-        ret = comparepath(filename);
+        ret = catalog.comparepath(filename);
         if (ret == -1) {
                 goto out;
         }
@@ -63,7 +58,7 @@ int store_type)
                 fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
         }
-        if (write (fd_stub, &store_type, int_size) == -1) {
+        if (write (fd_stub, &store_type, INT_SIZE) == -1) {
                 fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
         }
@@ -114,7 +109,7 @@ int store_type)
                         list = NULL;
                         chunk_flag = 0;
                         while (chunk_flag == 0) {
-                                chunk_buffer = get_variable_chunk(fd_input,
+                                chunk_buffer = rabin_karp.get_variable_chunk(fd_input,
                                 &ret, &size, &chunk_flag, &chunk_length);
                                 if (ret == -1) {
                                         fprintf (stderr,
@@ -143,7 +138,7 @@ int store_type)
                                 break;
                 }
         }
-        ret = writecatalog(filename);
+        ret = catalog.writecatalog(filename);
         if (ret == -1)
                 goto out;
         ret = 0;
@@ -162,8 +157,8 @@ int *length
 Output:int
 */
 int
-get_next_chunk(int fd_input, int chunk_type, int block_size, char **buffer,
-int *length)
+ydl_dedup::get_next_chunk(int fd_input, int chunk_type, int block_size,
+                           char **buffer, int *length)
 {
 
         int ret         =       -1;
@@ -184,7 +179,8 @@ Input:char *buffer,int length,int hash_type,char** hash,int *h_length
 Output:int
 */
 int
-get_hash(int hash_type, char **hash, int *h_length, vector_ptr list)
+ydl_dedup::get_hash(int hash_type, char **hash, int *h_length,
+                    vector_ptr list)
 {
 
         int ret         =       -1;
@@ -193,7 +189,7 @@ get_hash(int hash_type, char **hash, int *h_length, vector_ptr list)
 
         switch (hash_type) {
         case 1:
-                buf = str2md5(list);
+                buf = md5(list);
                 *hash = buf;
                 *h_length = strlen(buf);
                 break;
@@ -215,36 +211,41 @@ int b_offset,int fd_stub
 Output:int
 */
 int
-chunk_store(vector_ptr list, char *hash, int length, int h_length, int e_offset,
-int b_offset, int fd_stub, int store_type)
+ydl_dedup::chunk_store(vector_ptr list, char *hash, int length,
+                        int h_length, int e_offset, int b_offset,
+                        int fd_stub, int store_type)
 {
 
         int off                 =       -1;
         int ret                 =       -1;
+        ydl_stub stub_store;
+        ydl_hash hash_store;
+        ydl_block block_store;
+        ydl_object_store object_store;
 
         if (store_type == 0) {
-                ret = searchhash(hash);
+                ret = hash_store.searchhash(hash);
                 if (ret == -1) {
                         goto out;
                 }
                 if (ret == 0) {
-                        ret = write_to_stub(hash, h_length, fd_stub, b_offset,
+                        ret = stub_store.write_to_stub(hash, h_length, fd_stub, b_offset,
                                 e_offset);
                         if (ret == -1) {
                                 goto out;
                         }
                 } else {
-                        off = insert_block(list, length);
+                        off = block_store.insert_block(list, length);
                         if (off == -1) {
                                 fprintf(stderr, "%s\n", strerror(errno));
                                 goto out;
                         }
-                        ret = insert_hash(hash, off);
+                        ret = hash_store.insert_hash(hash, off);
                         if (ret == -1) {
                                 fprintf(stderr, "%s\n", strerror(errno));
                                 goto out;
                         }
-                        ret = write_to_stub(hash, h_length, fd_stub, b_offset,
+                        ret = stub_store.write_to_stub(hash, h_length, fd_stub, b_offset,
                                 e_offset);
                         if (ret == -1) {
                                 fprintf(stderr, "%s\n", strerror(errno));
@@ -252,12 +253,12 @@ int b_offset, int fd_stub, int store_type)
                         }
                 }
         } else {
-                ret = insert_block_to_object(hash, list);
+                ret = object_store.insert_block_to_object(hash, list);
                 if (ret == -1) {
                         fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
                 }
-                ret = write_to_stub(hash, h_length, fd_stub, b_offset,
+                ret = stub_store.write_to_stub(hash, h_length, fd_stub, b_offset,
                         e_offset);
                 if (ret == -1) {
                         fprintf(stderr, "%s\n", strerror(errno));
@@ -269,8 +270,3 @@ out:
         return ret;
 
 }
-
-
-
-
-

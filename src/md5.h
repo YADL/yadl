@@ -19,4 +19,4 @@
 @in: char *str-Buffer to store block for which the hash is generated,int length-length of block
 @out: char*-returns hash of block using md5
 @return: hash */
-char *str2md5(vector_ptr list);
+char *md5(vector_ptr list);

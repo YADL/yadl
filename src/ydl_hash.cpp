@@ -1,20 +1,17 @@
-#include "hash.h"
-#include "clean_buff.h"
-
-static int fd_hash;
+#include "ydl_hash.h"
 
 /*Function to create hash for a given block
 Input:void
 Output:int*/
 int
-init_hash_store()
+ydl_hash::init_hash_store()
 {
 
         int ret         =       -1;
 
-        fd_hash = open("filehashDedup.txt", O_APPEND|O_CREAT|O_RDWR,
+        hash_fd = open("filehashDedup.txt", O_APPEND|O_CREAT|O_RDWR,
                 S_IRUSR|S_IWUSR);
-        if (fd_hash == -1) {
+        if (hash_fd == -1) {
                 printf("\nCreation of hash file failed with error [%s]\n",
                         strerror(errno));
                 goto out;
@@ -31,22 +28,22 @@ Input:char *buff,int offset
 Output:int
 */
 int
-insert_hash(char *buff, int offset)
+ydl_hash::insert_hash(char *buff, int offset)
 {
 
         size_t          length;
         int ret         =       -1;
 
         length = strlen(buff);
-        if (write (fd_hash, &length, int_size) == -1) {
+        if (write (hash_fd, &length, INT_SIZE) == -1) {
                 printf("\nWrite failed with error%s\n", strerror(errno));
                 goto out;
         }
-        if (-1 == write(fd_hash, buff, length)) {
+        if (-1 == write(hash_fd, buff, length)) {
                 printf("\nWrite1 failed with error%s\n", strerror(errno));
                 goto out;
         }
-        if (write (fd_hash, &offset, int_size) == -1) {
+        if (write (hash_fd, &offset, INT_SIZE) == -1) {
                 printf("\nWrite failed with error%s\n", strerror(errno));
                 goto out;
         }
@@ -61,21 +58,21 @@ Input:char *out
 Output:int
 */
 int
-searchhash(char *out)
+ydl_hash::searchhash(char *out)
 {
 
         struct stat             st;
-        int     fd2             =               fd_hash;
+        int     fd2             =               hash_fd;
         int     size            =               0;
         size_t  length          =               0;
         int     ret             =               -1;
         int     offset          =               0;
         char    *buffer         =               NULL;
 
-        fstat(fd_hash, &st);
+        fstat(hash_fd, &st);
         size = st.st_size;
-        /*rewind the stream pointer to the start of temporary file*/
-        if (-1 == lseek(fd_hash, 0, SEEK_SET)) {
+        /*Rewind the stream pointer to the start of temporary file*/
+        if (-1 == lseek(hash_fd, 0, SEEK_SET)) {
                 printf("\nLseek failed with error: [%s]\n", strerror(errno));
                 goto out;
         }
@@ -84,7 +81,7 @@ searchhash(char *out)
                 goto out;
         }
         while (size > 0) {
-                ret = read(fd2, &length, int_size);
+                ret = read(fd2, &length, INT_SIZE);
                 if (ret == -1) {
                         printf("\nError while reading %s\n", strerror(errno));
                         goto out;
@@ -96,7 +93,7 @@ searchhash(char *out)
                                 strerror(errno));
                         goto out;
                 }
-                ret = read(fd2, &offset, int_size);
+                ret = read(fd2, &offset, INT_SIZE);
                 if (ret == -1) {
                         printf("\nError while reading %s\n", strerror(errno));
                         goto out;
@@ -108,7 +105,7 @@ searchhash(char *out)
                         clean_buff(&buffer);
                         break;
                 }
-                size -= (length+int_size+int_size);
+                size -= (length+INT_SIZE+INT_SIZE);
                 clean_buff(&buffer);
                 ret = 1;
         }
@@ -122,7 +119,7 @@ Input:char* hash
 Output:int
 */
 int
-getposition(char *hash)
+ydl_hash::getposition(char *hash)
 {
 
         struct stat             st;
@@ -133,11 +130,11 @@ getposition(char *hash)
         char    *buffer  =       NULL;
         int h_length    =       0;
 
-        fstat(fd_hash, &st);
+        fstat(hash_fd, &st);
         size = st.st_size;
         h_length = strlen(hash);
         /* rewind the stream pointer to the start of temporary file*/
-        if (-1 == lseek(fd_hash, 0, SEEK_SET)) {
+        if (-1 == lseek(hash_fd, 0, SEEK_SET)) {
                 printf("\nLseek failed with error: [%s]\n", strerror(errno));
                 goto out;
         }
@@ -147,20 +144,20 @@ getposition(char *hash)
         }
 
         while (size > 0) {
-                ret = read(fd_hash, &length, int_size);
+                ret = read(hash_fd, &length, INT_SIZE);
                 if (ret == -1) {
                         printf("\nError while reading %s", strerror(errno));
                         goto out;
                 }
                 buffer = (char *)calloc(1, length+1);
                 hash[h_length] = '\0';
-                ret = read(fd_hash, buffer, length);
+                ret = read(hash_fd, buffer, length);
                 if (ret == -1) {
                         printf("\nRead failed with error %s\n",
                                 strerror(errno));
                         goto out;
                 }
-                ret = read(fd_hash, &offset, int_size);
+                ret = read(hash_fd, &offset, INT_SIZE);
                 if (ret == -1) {
                         printf("\nError while reading %s", strerror(errno));
                         goto out;
@@ -171,7 +168,7 @@ getposition(char *hash)
                         clean_buff(&buffer);
                         break;
                 }
-                size -= (length+int_size+int_size);
+                size -= (length+INT_SIZE+INT_SIZE);
                 clean_buff(&buffer);
                 ret = -1;
         }
@@ -187,13 +184,13 @@ out:
 Input:void
 Output:int*/
 int
-fini_hash_store()
+ydl_hash::fini_hash_store()
 {
 
         int ret         =       -1;
 
-        if (fd_hash != -1)
-                ret = close(fd_hash);
+        if (hash_fd != -1)
+                ret = close(hash_fd);
         if (ret == -1) {
                 fprintf(stderr, "%s\n", strerror(errno));
                 goto out;

@@ -1,12 +1,11 @@
-#include "clean_buff.h"
-#include "delete.h"
+#include "ydl_delete.h"
 
 /*Function to delete file from a directory.
 Input:void
 Output:int
 */
 int
-delete_file()
+ydl_delete::delete_file()
 {
 
         int fd_cat      =       -1;
@@ -20,21 +19,21 @@ delete_file()
                 fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
         }
-        printf("\n deduped files are\n");
+        cout << "\n deduped files are\n";
         ret = readfilecatalog();
         if (ret == -1) {
                 fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
         }
-        printf("\nSelect the file you want to delete\n");
-        while (scanf("%s", filename) <= 0)
+        cout << "\nSelect the file you want to delete\n";
+        while ( cin >> filename <= 0)
                 ;
-        printf("\nFILE%s", filename);
+        cout << "\nFILE" << filename;
         status = remove(filename);
         if (status == 0) {
-                printf("\nFile deleted successfully.\n");
+                cout << "\nFile deleted successfully.\n";
         } else {
-                printf("\nUnable to delete the file\n");
+                cout << "\nUnable to delete the file\n";
                 perror("\nError\n");
                 goto out;
         }
