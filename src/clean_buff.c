@@ -6,13 +6,12 @@
 Input:char* path
 Output:int
 */
-inline void clean_buff(char** buffer)
+void clean_buff(char **buffer)
 {
-        
-        if(*buffer!=NULL)
-        {
+
+        if (*buffer != NULL) {
                 free(*buffer);
-                *buffer=NULL;
+                *buffer = NULL;
         }
 
 }

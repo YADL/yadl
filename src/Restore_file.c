@@ -1,175 +1,157 @@
 #include "restore.h"
 #include "catalog.h"
 #include "clean_buff.h"
+#include "stub.h"
 
 /*Function to enter a filename that has to be restored.
 Input:void
 Output:int
 */
-int 
-restore_file()
+int
+restore_file(char *file_path, char *store_path)
 {
-        
+
         int ret         =       -1;
-        char* path      =       NULL;
-        
+
         printf("\ndeduped files\n");
-        ret=readfilecatalog();
-        if (ret== -1)
-        {
+        ret = readfilecatalog();
+        if (ret == -1) {
                 goto out;
         }
-        path=(char*)calloc(1,FILE_SIZE);
-        out4:printf("\nEnter the exact and full path of dedup file to be restored\n");
-                if (scanf("%s",path) <=0) {
-                    goto out4;
-                }
-                ret=comparepath(path);
-                if (ret== -1)
-                {
-                        goto out;
-                }
-                if (ret== 1)
-                {
-                        printf("\nPlease enter valid  full path of file");
-                        goto out4;
-                }
-                ret=restorefile(path);
-        if (ret== -1)
-        {
-        goto out;
+        ret = comparepath(file_path);
+        if (ret == -1) {
+                goto out;
         }
-        ret=0;
+        if (ret == 1) {
+                printf("\nInvalid path");
+                goto out;
+        }
+        ret = restorefile(file_path, store_path);
+        if (ret == -1) {
+                goto out;
+        }
+        ret = 0;
 out:
-	clean_buff(&path);
         return ret;
-        
+
 }
 
-/*Function to delete file and restore it with original contents.
-Input:char* path
-Output:int
+/* Function to delete file and restore it with original contents.
+Input   :  char* path
+Output  :  int
 */
 int
-restorefile(char* path)
+restorefile(char *path, char *store_path)
 {
-        
+
+        int l                   =       0;
         int ret                 =      -1;
-        char temp_name[NAME_SIZE]    =               "";
+        char temp_name[NAME_SIZE]    = "";
         int size                =       0;
         int size1               =       0;
         int     pos             =       0;
-        char* buffer            =       NULL;
-        char* buffer2           =       NULL;
+        char *buffer            =       NULL;
+        char *buffer2           =       NULL;
         int length              =       0;
-        int sd1	                =       -1;
+        int sd1                =       -1;
         struct stat             st;
         int bset                =       0;
         int eset                =       0;
-        int fd2	                =       -1;
-        char* ts1               =       NULL;
-        char* ts2               =       NULL;
-        char* dir               =       NULL;
-        char* filename1         =       NULL;
-        
+        int fd2                =       -1;
+        int store_type               =       -1;
+        char *ts1               =       NULL;
+        char *ts2               =       NULL;
+        char *dir               =       NULL;
+        char *filename1         =       NULL;
+
         ts1 = strdup(path);
         ts2 = strdup(path);
         dir = dirname(ts1);
         filename1 = basename(ts2);
-        sprintf(dir,"%s/",dir);
-        sprintf(temp_name,"%sDedup_%s",dir,filename1);
-        printf("%s\n",dir);
-        printf("\npath%s",path);
-        printf("%s\n",filename1);
-        printf("\n%s\n",temp_name);
-        sd1 = open(temp_name,O_RDONLY, S_IRUSR|S_IWUSR);
-        if (sd1< 1)
-        {
-                fprintf(stderr,"%s\n",strerror(errno));
+        printf("%s\n", dir);
+        printf("\npath%s", path);
+        printf("%s\n", filename1);
+        printf("\n%s\n", temp_name);
+        ret = init_stub_store(store_path, filename1, &sd1);
+        if (ret < 0) {
+                fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
-        }
-        else
-        {
+        } else {
                 printf("\nStub file opened\n");
         }
 
         fstat(sd1, &st);
         size = st.st_size;
-        fd2 = open(path,O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
-        if (fd2< 1)
-        {
-                fprintf(stderr,"%s\n",strerror(errno));
+        fd2 = open(path, O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
+        if (fd2 < 1) {
+                fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
-        }
-        else
-        {
+        } else {
                 printf("\nRestore file created\n");
         }
-        if (size> 0)
-        {
-                if (-1 == lseek(sd1,0,SEEK_SET))
-                {
-                        fprintf(stderr,"%s\n",strerror(errno));
+        if (size > 0) {
+                if (-1 == lseek(sd1,0,SEEK_SET)) {
+                        fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
                 }
         }
-        if(size==0)
-        {
+        if (size == 0) {
                 printf("\nNo contents\n");
-                ret=-1;
+                ret = -1;
                 goto out;
         }
-        while(size>0)
-        {
-                ret=read(sd1,&length,int_size);
-                if (ret== -1)
-                {
-                        fprintf(stderr,"%s\n",strerror(errno));
+        ret = read(sd1, &store_type, int_size);
+        if (ret== -1) {
+                fprintf(stderr, "%s\n", strerror(errno));
+                goto out;
+        }
+        while (size > 0) {
+                ret = read(sd1, &length, int_size);
+                if (ret == -1) {
+                        fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
                 }
-                buffer=(char*)calloc(1,length+1);
-                ret=read(sd1,buffer,length);
-                if (ret== -1)
-                {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                buffer = (char *)calloc(1, length+1);
+                ret = read(sd1, buffer, length);
+                if (ret == -1) {
+                        fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
                 }
-                ret=read(sd1,&bset,int_size);
-                if (ret== -1)
-                {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                ret = read(sd1, &bset, int_size);
+                if (ret == -1) {
+                        fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
                 }
-                ret=read(sd1,&eset,int_size);
-                if (ret== -1)
-                {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                ret = read(sd1, &eset, int_size);
+                if (ret == -1) {
+                        fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
                 }
-                buffer[length]='\0';
-                pos=getposition(buffer);
-                if (pos== -1)
-                        goto out;
-                printf("\nPosition is %d\n",pos);
-                buffer2=get_block(pos);
-                if (strcmp(buffer2,"")== 0)
-                {
+                buffer[length] = '\0';
+                if (store_type == 0) {
+                        pos = getposition(buffer);
+                        if (pos == -1)
+                                goto out;
+                        buffer2 = get_block(pos, &l);
+                        if (buffer2 == NULL) {
+                                goto out;
+                        }
+                } else {
+                        buffer2 = get_block_from_object(buffer, &l, store_path);
+                        if (buffer2 == NULL)
+                                goto out;
+                }
+                ret = write(fd2, buffer2, l);
+                if (ret < 0) {
+                        fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
                 }
-                printf("block  is %s\n",buffer2);
-                ret= write(fd2,buffer2,strlen(buffer2));
-                if (ret< 0)
-                {
-                        fprintf(stderr,"%s\n",strerror(errno));
-                        goto out;
-                }
-                size1-=(length+int_size+int_size+int_size);
+                size1 -= (length+int_size+int_size+int_size);
                 clean_buff(&buffer);
                 clean_buff(&buffer2);
         }
-        ret=0;
+        ret = 0;
 out:
-return ret;
+        return ret;
 
 }
-

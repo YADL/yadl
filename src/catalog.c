@@ -1,33 +1,42 @@
 #include "catalog.h"
 #include "clean_buff.h"
 
-// Globals
+/* Globals */
 static size_t fd_cat;
-
-/*@description:Function to check whether path is present or not
-@in: char out[]-path,int filedes-file descriptor of file
-@out: int 
-@return: -1 for error and 0 if found. */
-int searchpath(char out[]);
 
 /*Function to create catalog file.
 Input:void
 Output:int*/
 int
-init_catalog_store()
+init_catalog_store(char *path)
 {
-        
-        int ret         =       -1;
 
-        fd_cat =open("filecatalog.txt",O_APPEND|O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
-        if (fd_cat< 1)
-        {
-                fprintf(stderr,"%s\n",strerror(errno));
+        int ret         =       -1;
+        DIR *dp = NULL;
+        char filename[1024],cat_path[1024];
+
+        strcpy(cat_path,path);
+        sprintf(cat_path, "%s/catalogs", cat_path);
+        dp = opendir(cat_path);
+        if (NULL == dp) {
+                ret = mkdir(cat_path, 0777);
+                if (ret < 0) {
+                        fprintf(stderr, "%s\n", strerror(errno));
+                        goto out;
+                }
+        }
+        sprintf (filename,"%s/filecatalog.txt",cat_path);
+        fd_cat = open(filename, O_APPEND|O_CREAT|O_RDWR,
+                S_IRUSR|S_IWUSR);
+        if (fd_cat < 1) {
+                fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
         }
-        ret=0;
+        ret = 0;
 out:
-	return ret;
+        if (dp != NULL)
+                closedir(dp);
+        return ret;
 
 }
 
@@ -35,37 +44,33 @@ out:
 Input:char* filename
 Output:int
 */
-int 
-writecatalog(char* filename)
+int
+writecatalog(char *filename)
 {
-    
+
         int ret                 =       -1;
-        char actualpath [PATH_MAX+1];
-        char *real_path	        =       NULL;
+        char actualpath[PATH_MAX+1];
+        char *real_path         =       NULL;
         int size_of_real_path   =       0;
-        
-        if (filename== '\0' || filename == NULL)
-        {
+
+        if (filename == '\0' || filename == NULL) {
                 goto out;
         }
         real_path = realpath(filename, actualpath);
-        if (real_path== NULL)
-        {
-                fprintf(stderr,"%s\n",strerror(errno));
+        if (real_path == NULL) {
+                fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
         }
-        size_of_real_path=strlen(real_path);
-        if (-1 == write(fd_cat,&size_of_real_path,int_size))
-        {
-                fprintf(stderr,"%s\n",strerror(errno));
+        size_of_real_path = strlen(real_path);
+        if (-1 == write(fd_cat, &size_of_real_path, int_size)) {
+                fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
         }
-        if (-1 == write(fd_cat,real_path,size_of_real_path))
-        {
-                fprintf(stderr,"%s\n",strerror(errno));
+        if (-1 == write(fd_cat, real_path, size_of_real_path)) {
+                fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
         }
-        ret=0;
+        ret = 0;
 out:
         return ret;
 
@@ -75,54 +80,127 @@ out:
 Input:void
 Output:int
 */
-int 
+int
 readfilecatalog()
 {
 
         struct stat             st;
-        int ret	         =       -1;
+        int ret          =       -1;
         char *buffer     =      NULL;
         int size         =       0;
         int length       =       0;
-        
+
         fstat(fd_cat, &st);
         size = st.st_size;
-        if (size> 0)
-        {
-                if (-1 == lseek(fd_cat,0,SEEK_SET))
-                {
-                        fprintf(stderr,"%s\n",strerror(errno));
+        if (size > 0) {
+                if (-1 == lseek(fd_cat, 0, SEEK_SET)) {
+                        fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
                 }
-        }
-        else
-        {
+        } else {
                 goto out;
         }
         printf("\nAbsolute path of deduped files are:\n");
-        while (size> 0)
-        {
-                ret=read(fd_cat,&length,int_size);
-                if (ret== -1)
-                {
-                        fprintf(stderr,"%s\n",strerror(errno));
+        while (size > 0) {
+                ret = read(fd_cat, &length, int_size);
+                if (ret == -1) {
+                        fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
                 }
-                buffer=(char*)calloc(1,length+1);
-                ret = read(fd_cat,buffer,length);
-                if (ret== -1)
-                {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                buffer = (char *)calloc(1, length + 1);
+                ret = read(fd_cat, buffer, length);
+                if (ret == -1) {
+                        fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
                 }
-                buffer[length]='\0';
-               	printf("%s\n",buffer);
-                size-=(length+int_size);
-                memset(buffer,0,length+1);
+                buffer[length] = '\0';
+                printf("%s\n", buffer);
+                size -= (length + int_size);
+                memset(buffer, 0, length+1);
                 clean_buff(&buffer);
-                ret=1;
+                ret = 1;
         }
-       
+
+out:
+        return ret;
+
+}
+
+/*Function to reset all deduped files from a catalog file.
+Input:void
+Output:int
+*/
+int
+reset_catalog(char *file_path, char *path)
+{
+
+        struct stat             st;
+        int     size                    =          0;
+        size_t  length                  =          0;
+        int     ret                     =         -1;
+        char    *buffer                 =       NULL;
+        char    *temp_catalog_buffer    =       NULL;
+        DIR     *dp                     =       NULL;
+        int     fd                      =          0;
+        char filename[1024], cat_path[1024];
+
+        fstat(fd_cat, &st);
+        size = st.st_size;
+        temp_catalog_buffer = (char *)calloc(1, size+1);
+        /*rewind the stream pointer to the start of catalog file*/
+        if (size > 0) {
+                if (-1 == lseek(fd_cat, 0, SEEK_SET)) {
+                        fprintf(stderr, "%s\n", strerror(errno));
+                        goto out;
+                }
+        }
+        if (size == 0) {
+                ret = 1;
+                goto out;
+        }
+        while (size > 0) {
+                ret = read(fd_cat, &length, int_size);
+                if (ret == -1) {
+                        fprintf(stderr, "%s\n", strerror(errno));
+                        goto out;
+                }
+                buffer = (char *)calloc(1, length+1);
+                ret = read(fd_cat, buffer, length);
+                if (ret == -1) {
+                        fprintf(stderr, "%s\n", strerror(errno));
+                        goto out;
+                }
+                buffer[length] = '\0';
+                if (strcmp(file_path, buffer) != 0) {
+                        sprintf(temp_catalog_buffer, "%s%lu%s",temp_catalog_buffer, length, buffer);
+                }
+                size -= (length + int_size);
+                memset(buffer, 0, length+1);
+                clean_buff(&buffer);
+                ret = 1;
+        }
+        printf("\n**%s**\n", temp_catalog_buffer);
+        strcpy(cat_path,path);
+        sprintf(cat_path, "%s/store_block/catalogs", cat_path);
+        dp = opendir(cat_path);
+        if (NULL == dp) {
+                fprintf(stderr, "%s\n", strerror(errno));
+                goto out;
+        }
+        sprintf (filename,"%s/filecatalog.txt",cat_path);
+        fd = open(filename, O_RDONLY | O_WRONLY | O_TRUNC,
+                S_IRUSR|S_IWUSR);
+        if (fd < 1) {
+                fprintf(stderr, "%s\n", strerror(errno));
+                goto out;
+        }
+
+        if (-1 == write(fd, temp_catalog_buffer, strlen(temp_catalog_buffer))) {
+                fprintf(stderr, "%s\n", strerror(errno));
+                goto out;
+        }
+        clean_buff(&temp_catalog_buffer);
+        ret = 0;
 out:
         return ret;
 
@@ -132,58 +210,51 @@ out:
 Input:char out[],int fd_cat
 Output:int
 */
-int 
+int
 comparepath(char out[])
 {
-        
+
         struct stat             st;
         int     size    =               0;
         size_t  length  =               0;
         int     ret     =               -1;
-        char*   buffer  =               NULL;
-        
+        char    *buffer  =               NULL;
+
         fstat(fd_cat, &st);
         size = st.st_size;
-        // rewind the stream pointer to the start of catalog file
-        if (size> 0)
-        {
-                if (-1 == lseek(fd_cat,0,SEEK_SET))
-                {
-                        fprintf(stderr,"%s\n",strerror(errno));
+        /*rewind the stream pointer to the start of catalog file*/
+        if (size > 0) {
+                if (-1 == lseek(fd_cat, 0, SEEK_SET)) {
+                        fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
                 }
         }
-        if (size== 0)
-        {
-                ret=1;
+        if (size == 0) {
+                ret = 1;
                 goto out;
         }
-        while (size> 0)
-        {
-                ret=read(fd_cat,&length,int_size);
-                if (ret== -1)
-                {
-                        fprintf(stderr,"%s\n",strerror(errno));
+        while (size > 0) {
+                ret = read(fd_cat, &length, int_size);
+                if (ret == -1) {
+                        fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
                 }
-                buffer=(char*)calloc(1,length+1);
-                ret = read(fd_cat,buffer,length);
-                if (ret== -1)
-                {
-                        fprintf(stderr,"%s\n",strerror(errno));
+                buffer = (char *)calloc(1, length+1);
+                ret = read(fd_cat, buffer, length);
+                if (ret == -1) {
+                        fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
                 }
-                buffer[length]='\0';
-                if (strcmp(out,buffer)== 0)
-                {
-                        ret=0;
+                buffer[length] = '\0';
+                if (strcmp(out, buffer) == 0) {
+                        ret = 0;
                         clean_buff(&buffer);
                         break;
                 }
-                size-=(length+int_size);
-                memset(buffer,0,length+1);
+                size -= (length + int_size);
+                memset(buffer, 0, length+1);
                 clean_buff(&buffer);
-                ret=1;
+                ret = 1;
         }
 out:
         return ret;
@@ -196,17 +267,16 @@ Output:int*/
 int
 fini_catalog_store()
 {
-        
+
         int ret         =       -1;
-        
+
         if (fd_cat != -1)
-        ret=close(fd_cat);
-        if (ret== -1)
-        {
-                fprintf(stderr,"%s\n",strerror(errno));
+                ret = close(fd_cat);
+        if (ret == -1) {
+                fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
         }
-        ret=0;
+        ret = 0;
 out:
 return ret;
 
