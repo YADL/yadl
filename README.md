@@ -4,6 +4,8 @@
 [![Build Status](https://travis-ci.org/YADL/yadl.svg?branch=master)](https://travis-ci.org/YADL/yadl)
 
 ![yadl_logo](https://github.com/YADL/yadl/blob/master/img/newbird.png)
+### "Simple and Nimble"
+
 
 Documentation is available in the [Wiki](https://github.com/YADL/yadl/wiki)
 
