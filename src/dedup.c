@@ -75,7 +75,10 @@ dedup_file (namespace_dtl namespace_input,char *file_path)
         }
         if (ret == 0) {
                 printf("\nFile is already deduped. Do you want to overwrite?[Y/N]");
-                scanf("%c",&confirm);
+                if (scanf("%c",&confirm) <= 0){
+                        fprintf(stderr, "%s\n", strerror(errno));
+                        goto out;
+                }
                 if (confirm == 'n')
                         goto out;
         }

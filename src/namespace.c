@@ -45,9 +45,95 @@ create_namespace(int arg_count, char *namespace_path)
                 sprintf(content, "%schunk_scheme:%s\n", content, nm.chunk_scheme);
                 sprintf(content, "%schunk_size:%d\n", content, nm.chunk_size);
                 sprintf(content, "%sdesc:%s\n", content, nm.desc);
-                write (fd, content, strlen(content));
+                ret = write (fd, content, strlen(content));
+                if (ret < 0)
+                        goto out;
         } else {
                 printf("namespace already present\n");
+        }
+        ret = 0;
+out :
+        return ret;
+}
+
+int
+namespace_info(char *namespace_path)
+{
+        int     ret             =       -1;
+        int     fd              =       -1;
+        char    filename[1024]  =       "";
+        char    content[1024]   =       "";
+        DIR           *d;
+        struct dirent *dir;
+
+        if (nm.namespace_name == NULL) {
+                print_usage(stderr, 1);
+                goto out;
+        }
+
+        if (strcmp(nm.namespace_name,"all") != 0) {
+                sprintf(filename, "%s/%s.yadl", namespace_path, nm.namespace_name);
+                printf("%s\n",filename);
+                fd = open(filename, O_RDONLY, S_IRUSR|S_IWUSR);
+                if( fd < 1) {
+                        fprintf(stderr, "%s\n", strerror(errno));
+                        goto out;
+                }
+                ret = read(fd, content, 1024);
+                if(ret < 0) {
+                        fprintf(stderr, "%s\n", strerror(errno));
+                        goto out;
+                }
+                printf("\n%s\n",content);
+        } else {
+                d = opendir(namespace_path);
+                if (d) {
+                        while ((dir = readdir(d)) != NULL) {
+                                if(strcmp(dir->d_name,".") != 0 && strcmp(dir->d_name, "..") != 0) {
+                                        sprintf(filename, "%s/%s", namespace_path, dir->d_name);
+                                        printf("\n%s:",filename);
+                                        fd = open(filename, O_RDONLY, S_IRUSR|S_IWUSR);
+                                        if( fd < 1) {
+                                                fprintf(stderr, "%s\n", strerror(errno));
+                                                goto out;
+                                        }
+                                        ret = read(fd, content, 1024);
+                                        if(ret < 0) {
+                                                fprintf(stderr, "%s\n", strerror(errno));
+                                                goto out;
+                                        }
+                                        printf("\n%s\n",content);
+                                        memset(content, 0, 1024);
+                                }
+                        }
+                        closedir(d);
+                }
+        }
+        ret = 0;
+out :
+        return ret;
+}
+
+int
+list_namespace(char *namespace_path)
+{
+        int     ret             =       -1;
+        char    filename[1024]  =       "";
+        DIR           *dp;
+        struct dirent *dir;
+
+        dp = opendir(namespace_path);
+        if (dp) {
+                while ((dir = readdir(dp)) != NULL) {
+                        if(strcmp(dir->d_name,".") != 0 && strcmp(dir->d_name, "..") != 0) {
+                                sprintf(filename, "%s/%s", namespace_path, dir->d_name);
+                                printf("\n%s\n",filename);
+                        }
+                }
+                closedir(dp);
+        } else {
+                ret = -1;
+                goto out;
         }
         ret = 0;
 out :
@@ -75,7 +161,7 @@ file_operation(enum FLAG flag, char *filename, char *namespace_path)
         char    path[1024]      =       "";
 
         sprintf(namespace_filename, "%s/%s.yadl", namespace_path,
-                dedup_struct.namespace_name);
+                nm.namespace_name);
         fd = open(namespace_filename, O_RDONLY, S_IWUSR|S_IRUSR);
         if (fd < 1)
         {
@@ -153,6 +239,11 @@ file_operation(enum FLAG flag, char *filename, char *namespace_path)
                 if (ret < 0)
                         goto out;
         }
+        if (flag == list) {
+                ret = readfilecatalog();
+                if (ret < 0)
+                        goto out;
+        }
         ret = fini_block_store();
         if (ret == -1)
                 goto out;
@@ -179,7 +270,7 @@ start_program(int argc, char **argv, char *namespace_path)
         enum    FLAG flag               =       -1;
         int     option_index            =        0;
         
-        const char *short_options = "cn:p:h:s:df:";
+        const char *short_options = "cn:p:h:s:df:il";
 
         const struct option long_options[] = {
                 {"create",          no_argument,            0,   'c'},
@@ -193,7 +284,9 @@ start_program(int argc, char **argv, char *namespace_path)
                 {"dedup",           no_argument,            0,   0 },
                 {"file",            required_argument,      0,   'f'},
                 {"restore",         no_argument,            0,   'r'},
-                {"delete",         no_argument,            0,   'd'},
+                {"delete",          no_argument,            0,   'd'},
+                {"info",            no_argument,            0,   'i'},
+                {"list",            no_argument,            0,   'l'},
                 {0,                 0,                      0,   0 }
         };
 
@@ -231,7 +324,6 @@ start_program(int argc, char **argv, char *namespace_path)
 
                 case 'n':
                         nm.namespace_name = optarg;
-                        dedup_struct.namespace_name = optarg;
                         break;
 
                 case 'p':
@@ -258,9 +350,17 @@ start_program(int argc, char **argv, char *namespace_path)
                         file_path = optarg;
                         break;
 
+                case 'i' :
+                        flag = info;
+                        break;
+
+                case 'l' :
+                        flag = list;
+                        break;
+
                 case '?':
                         print_usage (stderr, 1);
-                        break;
+                        goto out;
 
                 default:
                         printf("?? getopt returned character code 0%o ??\n", choice);
@@ -292,6 +392,25 @@ start_program(int argc, char **argv, char *namespace_path)
                 if(ret == -1)
                         goto out;
                 break;
+        case 5 :
+                ret = namespace_info(namespace_path);
+                if(ret == -1)
+                        goto out;
+                break;
+        case 6 :
+                if(nm.namespace_name == NULL ) {
+                        ret = list_namespace(namespace_path);
+                        if(ret == -1)
+                                goto out;
+                } else {
+                        ret = file_operation(flag,file_path, namespace_path);
+                        if(ret == -1)
+                                goto out;
+                }
+                break;
+        default :
+                print_usage (stderr, 1);
+                goto out;
         }
         ret = 0;
 out :

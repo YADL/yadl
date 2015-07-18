@@ -114,13 +114,13 @@ readfilecatalog()
                         goto out;
                 }
                 buffer[length] = '\0';
-                printf("%s\n", buffer);
+                printf("\n%s\n", buffer);
                 size -= (length + int_size);
                 memset(buffer, 0, length+1);
                 clean_buff(&buffer);
                 ret = 1;
         }
-
+        printf("\n");
 out:
         return ret;
 
@@ -136,17 +136,18 @@ reset_catalog(char *file_path, char *path)
 
         struct stat             st;
         int     size                    =          0;
-        size_t  length                  =          0;
+        int     length                  =          0;
         int     ret                     =         -1;
         char    *buffer                 =       NULL;
         char    *temp_catalog_buffer    =       NULL;
         DIR     *dp                     =       NULL;
         int     fd                      =          0;
+        int     ptr_incr                =          0;
         char filename[1024], cat_path[1024];
 
         fstat(fd_cat, &st);
         size = st.st_size;
-        temp_catalog_buffer = (char *)calloc(1, size+1);
+        temp_catalog_buffer = (char *)calloc(1, 1024);
         /*rewind the stream pointer to the start of catalog file*/
         if (size > 0) {
                 if (-1 == lseek(fd_cat, 0, SEEK_SET)) {
@@ -172,14 +173,18 @@ reset_catalog(char *file_path, char *path)
                 }
                 buffer[length] = '\0';
                 if (strcmp(file_path, buffer) != 0) {
-                        sprintf(temp_catalog_buffer, "%s%lu%s",temp_catalog_buffer, length, buffer);
+                        memcpy(temp_catalog_buffer + ptr_incr, &length, int_size);
+                        ptr_incr += int_size;
+                        printf("\n**%s*%d*\n", temp_catalog_buffer,length);
+                        memcpy(temp_catalog_buffer + ptr_incr, buffer, strlen(buffer));
+                        ptr_incr += strlen(buffer);
+                        printf("\n**%s*%s*\n", temp_catalog_buffer,buffer);
                 }
                 size -= (length + int_size);
                 memset(buffer, 0, length+1);
                 clean_buff(&buffer);
                 ret = 1;
         }
-        printf("\n**%s**\n", temp_catalog_buffer);
         strcpy(cat_path,path);
         sprintf(cat_path, "%s/store_block/catalogs", cat_path);
         dp = opendir(cat_path);
@@ -202,6 +207,10 @@ reset_catalog(char *file_path, char *path)
         clean_buff(&temp_catalog_buffer);
         ret = 0;
 out:
+        if(fd != -1)
+                close(fd);
+        if (dp != NULL)
+                closedir(dp);
         return ret;
 
 }
