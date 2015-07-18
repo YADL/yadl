@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-enum FLAG { create, edit, delete_file, dedup, restore };
+enum FLAG { create, edit, delete_file, dedup, restore, info, list};
 
 struct namespace_dtl
 {
@@ -23,14 +23,6 @@ struct namespace_dtl
 }nm,nm1;
 
 typedef struct namespace_dtl namespace_dtl;
-
-struct dedup_dtl
-{
-        char *namespace_name;
-        char *file_path;
-}dedup_struct;
-
-typedef struct dedup_dtl dedup_dtl;
 
 int start_program(int argc, char **argv, char *namespace_path);
 
