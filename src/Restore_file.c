@@ -13,11 +13,6 @@ restore_file(char *file_path, char *store_path)
 
         int ret         =       -1;
 
-        printf("\ndeduped files\n");
-        ret = readfilecatalog();
-        if (ret == -1) {
-                goto out;
-        }
         ret = comparepath(file_path);
         if (ret == -1) {
                 goto out;
@@ -46,7 +41,6 @@ restorefile(char *path, char *store_path)
 
         int l                   =       0;
         int ret                 =      -1;
-        char temp_name[NAME_SIZE]    = "";
         int size                =       0;
         int size1               =       0;
         int     pos             =       0;
@@ -69,9 +63,8 @@ restorefile(char *path, char *store_path)
         dir = dirname(ts1);
         filename1 = basename(ts2);
         printf("%s\n", dir);
-        printf("\npath%s", path);
-        printf("%s\n", filename1);
-        printf("\n%s\n", temp_name);
+        printf("\npath : %s\n", path);
+        printf("File : %s\n", filename1);
         ret = init_stub_store(store_path, filename1, &sd1);
         if (ret < 0) {
                 fprintf(stderr, "%s\n", strerror(errno));
@@ -87,7 +80,7 @@ restorefile(char *path, char *store_path)
                 fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
         } else {
-                printf("\nRestore file created\n");
+                printf("Restore file created\nRestore in progress...\n");
         }
         if (size > 0) {
                 if (-1 == lseek(sd1,0,SEEK_SET)) {

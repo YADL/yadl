@@ -25,8 +25,8 @@ main (int argc, char *argv[])
                 goto out;
         }
         ret = 0;
-out :
-        if(dp != NULL)
+out:
+        if (dp != NULL)
                 closedir(dp);
         return ret;
 

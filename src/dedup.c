@@ -15,10 +15,10 @@ Input:char* filename,int chunk_type,int hash_type,int block_size
 Output:int
 */
 int
-dedup_file (namespace_dtl namespace_input,char *file_path)
+dedup_file (namespace_dtl namespace_input, char *file_path)
 {
 
-        char* filename          =       NULL;
+        char *filename          =       NULL;
         int chunk_type          =       0;
         int hash_type           =       0;
         int block_size          =       0;
@@ -43,21 +43,21 @@ dedup_file (namespace_dtl namespace_input,char *file_path)
         struct stat st;
         vector_ptr list         =       NULL;
 
-        if(strcmp(namespace_input.hash_type,"md5") == 0)
+        if (strcmp(namespace_input.hash_type, "md5") == 0)
                 hash_type = 0;
         else
                 hash_type = 1;
 
-        if(strcmp(namespace_input.store_type,"default") == 0)
+        if (strcmp(namespace_input.store_type, "default") == 0)
                 store_type = 0;
         else
                 store_type = 1;
 
-        if(strcmp(namespace_input.chunk_scheme,"fixed") == 0) {
-                hash_type = 0;
+        if (strcmp(namespace_input.chunk_scheme, "fixed") == 0) {
+                chunk_type = 0;
                 block_size = namespace_input.chunk_size;
         } else {
-                hash_type = 1;
+                chunk_type = 1;
                 block_size = 0;
         }
 
@@ -74,14 +74,16 @@ dedup_file (namespace_dtl namespace_input,char *file_path)
                 goto out;
         }
         if (ret == 0) {
-                printf("\nFile is already deduped. Do you want to overwrite?[Y/N]");
-                if (scanf("%c",&confirm) <= 0){
+                printf("\nFile is already deduped."
+                        "Do you want to overwrite?[Y/N]");
+                if (scanf("%c", &confirm) <= 0){
                         fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
                 }
-                if (confirm == 'n')
+                if (confirm != 'y' && confirm != 'Y')
                         goto out;
         }
+        printf("\nDeduplication in progress...\n");
         ret = init_stub_store(namespace_input.store_path, filename1, &fd_stub);
         if (ret < 0) {
                 fprintf(stderr, "%s\n", strerror(errno));
@@ -93,7 +95,7 @@ dedup_file (namespace_dtl namespace_input,char *file_path)
         }
         fstat(fd_input, &st);
         size = st.st_size;
-        if (chunk_type == 1) {
+        if (chunk_type == 0) {
                 while (1) {
                         list = NULL;
                         if (size <= block_size) {
@@ -114,7 +116,8 @@ dedup_file (namespace_dtl namespace_input,char *file_path)
                         if (ret == -1)
                                 goto out;
                         ret = chunk_store(list, hash, length, h_length,
-                        b_offset, e_offset, fd_stub, store_type, namespace_input.store_path);
+                        b_offset, e_offset, fd_stub, store_type,
+                        namespace_input.store_path);
                         if (ret == -1)
                                 goto out;
                         e_offset++;
@@ -156,8 +159,8 @@ dedup_file (namespace_dtl namespace_input,char *file_path)
                         if (ret == -1)
                                 goto out;
                         ret = chunk_store(list, hash, length,
-                                h_length, b_offset, e_offset, fd_stub, store_type,
-                                        namespace_input.store_path);
+                                h_length, b_offset, e_offset, fd_stub,
+                                store_type, namespace_input.store_path);
                         if (ret == -1)
                                 goto out;
                         fprintf(fp, "%d\n", length);
@@ -218,12 +221,12 @@ get_hash(int hash_type, char **hash, int *h_length, vector_ptr list)
         char *buff      =       NULL;
 
         switch (hash_type) {
-        case 1:
+        case 0:
                 buf = str2md5(list);
                 *hash = buf;
                 *h_length = strlen(buf);
                 break;
-        case 2:
+        case 1:
                 buff = sha1(list);
                 *hash = buff;
                 *h_length = strlen(buff);
