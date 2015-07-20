@@ -139,15 +139,29 @@ reset_catalog(char *file_path, char *path)
         int     length                  =          0;
         int     ret                     =         -1;
         char    *buffer                 =       NULL;
-        char    *temp_catalog_buffer    =       NULL;
         DIR     *dp                     =       NULL;
         int     fd                      =          0;
-        int     ptr_incr                =          0;
-        char filename[1024], cat_path[1024];
+        char filename[1024], cat_path[1024], temp_filename[1024];
+
+        strcpy(cat_path, path);
+        sprintf(cat_path, "%s/store_block/catalogs", cat_path);
+
+        dp = opendir(cat_path);
+        if (NULL == dp) {
+                fprintf(stderr, "%s\n", strerror(errno));
+                goto out;
+        }
+        sprintf (filename,"%s/filecatalog.txt",cat_path);
+        sprintf (temp_filename,"%s/temp_filecatalog.txt",cat_path);
+        fd = open(temp_filename, O_RDONLY | O_WRONLY | O_TRUNC | O_CREAT,
+                S_IRUSR|S_IWUSR);
+        if (fd < 1) {
+                fprintf(stderr, "%s\n", strerror(errno));
+                goto out;
+        }
 
         fstat(fd_cat, &st);
         size = st.st_size;
-        temp_catalog_buffer = (char *)calloc(1, 1024);
         /*rewind the stream pointer to the start of catalog file*/
         if (size > 0) {
                 if (-1 == lseek(fd_cat, 0, SEEK_SET)) {
@@ -173,38 +187,25 @@ reset_catalog(char *file_path, char *path)
                 }
                 buffer[length] = '\0';
                 if (strcmp(file_path, buffer) != 0) {
-                        memcpy(temp_catalog_buffer + ptr_incr, &length, int_size);
-                        ptr_incr += int_size;
-                        printf("\n**%s*%d*\n", temp_catalog_buffer,length);
-                        memcpy(temp_catalog_buffer + ptr_incr, buffer, strlen(buffer));
-                        ptr_incr += strlen(buffer);
-                        printf("\n**%s*%s*\n", temp_catalog_buffer,buffer);
+                        if (-1 == write(fd, &length, int_size)) {
+                                fprintf(stderr, "%s\n", strerror(errno));
+                                goto out;
+                        }
+                        if (-1 == write(fd, buffer, length)) {
+                                fprintf(stderr, "%s\n", strerror(errno));
+                                goto out;
+                        }
                 }
                 size -= (length + int_size);
                 memset(buffer, 0, length+1);
                 clean_buff(&buffer);
-                ret = 1;
         }
-        strcpy(cat_path,path);
-        sprintf(cat_path, "%s/store_block/catalogs", cat_path);
-        dp = opendir(cat_path);
-        if (NULL == dp) {
-                fprintf(stderr, "%s\n", strerror(errno));
+        ret = remove(filename);
+        if (ret < 0)
                 goto out;
-        }
-        sprintf (filename,"%s/filecatalog.txt",cat_path);
-        fd = open(filename, O_RDONLY | O_WRONLY | O_TRUNC,
-                S_IRUSR|S_IWUSR);
-        if (fd < 1) {
-                fprintf(stderr, "%s\n", strerror(errno));
+        ret = rename(temp_filename,filename);
+        if (ret < 0)
                 goto out;
-        }
-
-        if (-1 == write(fd, temp_catalog_buffer, strlen(temp_catalog_buffer))) {
-                fprintf(stderr, "%s\n", strerror(errno));
-                goto out;
-        }
-        clean_buff(&temp_catalog_buffer);
         ret = 0;
 out:
         if(fd != -1)

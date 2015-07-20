@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-enum FLAG { create, edit, delete_file, dedup, restore, info, list, reset};
+enum FLAG {create, edit, delete_file, dedup, restore, info, list, reset};
 
 struct namespace_dtl
 {

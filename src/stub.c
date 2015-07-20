@@ -51,11 +51,10 @@ delete_stub_store(char *path, char *filename)
         DIR *dp = NULL;
         char stub_path[1024];
 
-        /*ret = reset_catalog(filename, path);
+        ret = reset_catalog(filename, path);
         if(ret == -1) {
-                fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
-        }*/
+        }
         filename = basename(filename);
         strcpy(stub_path,path);
         sprintf(stub_path, "%s/store_block/stubs", stub_path);
