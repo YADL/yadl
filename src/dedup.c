@@ -64,7 +64,7 @@ dedup_file (namespace_dtl namespace_input, char *file_path)
         filename = file_path;
         ts1 = strdup(filename);
         filename1 = basename(ts1);
-        fd_input = open(filename, O_APPEND|O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
+        fd_input = open(filename, O_RDONLY, S_IRUSR|S_IWUSR);
         if (fd_input < 1) {
                 fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
@@ -76,7 +76,7 @@ dedup_file (namespace_dtl namespace_input, char *file_path)
         if (ret == 0) {
                 printf("\nFile is already deduped."
                         "Do you want to overwrite?[Y/N]");
-                if (scanf("%c", &confirm) <= 0){
+                if (scanf("%c", &confirm) <= 0) {
                         fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
                 }

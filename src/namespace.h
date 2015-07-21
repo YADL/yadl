@@ -9,9 +9,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-enum FLAG {create, edit, delete_file, dedup, restore, info, list, reset};
+enum OPTIONS {create, edit, delete_file, dedup, restore, info, list, reset};
 
-struct namespace_dtl
+struct namespace_struct
 {
         char *namespace_name;
         char *store_path;
@@ -20,9 +20,11 @@ struct namespace_dtl
         char *store_type;
         char *chunk_scheme;
         size_t  chunk_size;
-}nm,nm1;
+};
 
-typedef struct namespace_dtl namespace_dtl;
+typedef struct namespace_struct namespace_dtl;
+
+#define LENGTH 1024
 
 /*@description:Function to to give correct instruction to use the various information.
 Input:
@@ -56,30 +58,35 @@ int dedup_file (namespace_dtl namespace_input,char *file_path);
 /*@description: Function to call different file operation functions with vaid inputs.
  initiate various stores.
 Input:
-        enum FLAG flag : Notifies which file operation to be performed.
+        enum OPTIONS flag : Notifies which file operation to be performed.
         char *filename : File that to be operated.
         char *namespace_path : Path of the namespace.
+        namespace_dtl set_namespace : Contains namespace information to perform
+                                        file operations.
 Output:
         int : Return 0 on success -1 on failure.
 */
-int file_operation(enum FLAG flag, char *filename, char *namespace_path);
+int file_operation(enum OPTIONS flag, char *filename, char *namespace_path, namespace_dtl set_namespace);
 
 /*@description: Function to create the namespace with given arguments.
 Input:
         char *namespace_path : Path of the namespace.
+        namespace_dtl set_namespace : Contains namespace information to perform
+                                        creation of namespace.
 Output:
         int : Return 0 on success -1 on failure.
 */
-int create_namespace(char *namespace_path);
+int create_namespace(char *namespace_path, namespace_dtl set_namespace);
 
 /*@description: Function to display the info of perticular namespace and info of
  all namespace.
 Input:
         char *namespace_path : Path of the namespace.
+        namespace_dtl set_namespace : Contains namespace information.
 Output:
         int : Return 0 on success -1 on failure.
 */
-int namespace_info(char *namespace_path);
+int namespace_info(char *namespace_path, namespace_dtl set_namespace);
 
 /*@description: Function to list the namespace that are created.
 Input:
@@ -93,10 +100,12 @@ int list_namespace(int argc, char *namespace_path);
 /*@description: Function to delete the namespace.
 Input:
         char *namespace_path : Path of the namespace.
+        namespace_dtl set_namespace : Contains namespace information to perform
+                                        delete operations.
 Output:
         int : Return 0 on success -1 on failure.
 */
-int delete_namespace(char *namespace_path);
+int delete_namespace(char *namespace_path, namespace_dtl set_namespace);
 
 /*@description: Function to reset the namespace by deleting all stores of
  perticular namespace.
@@ -106,3 +115,13 @@ Output:
         int : Return 0 on success -1 on failure.
 */
 int clear_store(char *store_path);
+
+/*@description: Function to edit the namespace
+Input:
+        char *namespace_path : Path of the namespace.
+        namespace_dtl set_namespace : Contains namespace information to perform
+                                        edit operations.
+Output:
+        int : Return 0 on success -1 on failure.
+*/
+int edit_namespace(char *namespace_path, namespace_dtl set_namespace);

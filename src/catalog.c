@@ -84,7 +84,7 @@ int
 readfilecatalog()
 {
 
-        struct stat             st;
+        struct stat              st;
         int ret          =       -1;
         char *buffer     =      NULL;
         int size         =       0;
@@ -98,6 +98,7 @@ readfilecatalog()
                         goto out;
                 }
         } else {
+                printf("This namespace dose not continue any files\n");
                 goto out;
         }
         printf("\nAbsolute path of deduped files are:\n");
