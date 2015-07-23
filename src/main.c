@@ -7,14 +7,19 @@ int
 main (int argc, char *argv[])
 {
 
-        int     ret                     = -1;
-        char    namespace_path[15]      = "";
-        DIR     *dp                     = NULL;
+        int     ret                       = -1;
+        char    namespace_path[FILE_SIZE] = "";
+        DIR     *dp                       = NULL;
 
         sprintf(namespace_path, "/var/lib/yadl");
         dp = opendir(namespace_path);
         if (NULL == dp) {
                 ret = mkdir(namespace_path, 0777);
+                if (ret < 0) {
+                        fprintf(stderr, "%s\n", strerror(errno));
+                        goto out;
+                }
+                ret = create_default_namespace(namespace_path);
                 if (ret < 0) {
                         fprintf(stderr, "%s\n", strerror(errno));
                         goto out;

@@ -125,3 +125,21 @@ Output:
         int : Return 0 on success -1 on failure.
 */
 int edit_namespace(char *namespace_path, namespace_dtl set_namespace);
+
+/*@description: Function to get the namespace configuration
+Input:
+        char *buffer : Path of the namespace.
+        int *ret : Return value 0 on success -1 on failure.
+Output:
+        namespace_dtl set_namespace : Contains namespace information to perform
+                                        edit operations.
+*/
+namespace_dtl get_namespace_method(char *buffer, int *ret);
+
+/*@description: Function to create the default namespace
+Input:
+        char *namespace_path : Path of the namespace.
+Output:
+        int : Return 0 on success -1 on failure.
+*/
+int create_default_namespace(char *namespace_path);

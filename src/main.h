@@ -9,4 +9,4 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#define FILE_SIZE  200
+#define FILE_SIZE  20
