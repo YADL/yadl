@@ -64,6 +64,60 @@ print_usage (FILE *stream, int exit_code)
                 );
 }
 
+/*Function to create the default namespace
+Input:
+        char *namespace_path : Path of the namespace.
+Output:
+        int : Return 0 on success -1 on failure.
+*/
+int
+create_default_namespace(char *namespace_path)
+{
+        int     ret                     =       -1;
+        int     fd                      =       -1;
+        char    file_path[LENGTH]       =       "";
+        char    content[LENGTH]         =       "";
+        DIR     *store_dp               =       NULL;
+
+        if (namespace_path == NULL) {
+                printf("Invalid namespace path\n");
+                goto out;
+        }
+        sprintf(file_path, "%s/default.yadl", namespace_path);
+        fd = open(file_path, O_APPEND|O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
+        if (fd < 1) {
+                fprintf(stderr, "%s\n", strerror(errno));
+                goto out;
+        }
+
+        sprintf(content, "store_path:/var/lib\n");
+        sprintf(content, "%sstore_type:default\n", content);
+        sprintf(content, "%shash_type:md5\n", content);
+        sprintf(content, "%schunk_scheme:variable\n", content);
+        sprintf(content, "%schunk_size:0\n", content);
+        sprintf(content, "%sdesc:Default namespace\n", content);
+        ret = write (fd, content, strlen(content));
+        if (ret < 0)
+                goto out;
+
+        store_dp = opendir("/var/lib");
+        if (NULL == store_dp) {
+                ret = mkdir("/var/lib", 0777);
+                if (ret < 0) {
+                        fprintf(stderr, "%s\n", strerror(errno));
+                        goto out;
+                }
+        }
+        ret = 0;
+out:
+        if (ret < 0)
+                print_usage(stderr, 1);
+        if (fd != -1)
+                close(fd);
+        return ret;
+}
+
+
 /*Function to create the namespace with given arguments.
 Input:
         char *namespace_path : Path of the namespace.
@@ -80,26 +134,65 @@ create_namespace(char *namespace_path, namespace_dtl set_namespace)
         char    file_path[LENGTH]       =       "";
         char    content[LENGTH]         =       "";
         char    store_path[LENGTH]      =       "";
+        char    namespace_filename[LENGTH] =    "";
+        char    *buffer                 =       NULL;
         DIR     *dp                     =       NULL;
         DIR     *store_dp               =       NULL;
+        namespace_dtl get_namespace;
         struct stat st;
 
-        if (namespace_path == NULL || set_namespace.store_path == NULL ||
-                set_namespace.store_type == NULL ||
+        if (namespace_path == NULL || set_namespace.store_path == NULL) {
+                printf("Invalid argument list\n");
+                goto out;
+        }
+
+        if (namespace_path != NULL && set_namespace.store_path != NULL &&
+                set_namespace.store_type == NULL &&
+                set_namespace.hash_type == NULL &&
+                set_namespace.chunk_scheme == NULL &&
+                set_namespace.chunk_size == 0) {
+
+                sprintf(namespace_filename, "%s/default.yadl", namespace_path);
+                fd = open(namespace_filename, O_RDONLY, S_IWUSR|S_IRUSR);
+                if (fd < 1) {
+                        fprintf(stderr, "%s\nNamespace does not exists\n",
+                                strerror(errno));
+                        goto out;
+                }
+                buffer = (char *)calloc(1, LENGTH);
+                ret = read(fd, buffer, LENGTH);
+                if (ret < 0) {
+                        fprintf(stderr, "%s\n", strerror(errno));
+                        goto out;
+                }
+                get_namespace = get_namespace_method(buffer, &ret);
+                if (ret < 0) {
+                        fprintf(stderr, "%s\n", strerror(errno));
+                        goto out;
+                }
+                set_namespace.store_type = get_namespace.store_type;
+                set_namespace.hash_type = get_namespace.hash_type;
+                set_namespace.chunk_scheme = get_namespace.chunk_scheme;
+                set_namespace.chunk_size = set_namespace.chunk_size;
+                printf("Default namespace configure is assigning...\n");
+        } else if (set_namespace.store_type == NULL ||
                 set_namespace.hash_type == NULL ||
                 set_namespace.chunk_scheme == NULL) {
                 printf("Invalid argument list\n");
                 goto out;
         }
 
+        if (set_namespace.namespace_name == NULL) {
+                printf("Invalid Namespace name\n");
+                goto out;
+        }
+        if (strcmp(set_namespace.namespace_name, "all") == 0) {
+                printf("all is command so it cannot be used as namespace\n");
+                goto out;
+        }
         sprintf(file_path, "%s/%s.yadl", namespace_path,
                 set_namespace.namespace_name);
         if (stat (file_path, &st) != 0) {
-
-                if (set_namespace.namespace_name == NULL) {
-                        printf("Invalid Namespace name\n");
-                        goto out;
-                }
 
                 dp = opendir(set_namespace.store_path);
                 if (dp == NULL) {
@@ -424,6 +517,12 @@ delete_namespace(char *namespace_path, namespace_dtl set_namespace)
                 goto out;
         }
 
+        if (strcmp(set_namespace.namespace_name, "default") == 0) {
+                printf("Sorry!! Default settings cannot be deleted\n");
+                ret = 0;
+                goto out;
+        }
+
         sprintf(namespace_file, "%s.yadl", set_namespace.namespace_name);
         dp = opendir(namespace_path);
         if (dp) {
@@ -510,27 +609,17 @@ out:
         return ret;
 }
 
-/*Function to call different file operation functions with vaid inputs.
- initiate various stores.
+/*Function to get the namespace configuration
 Input:
-        enum OPTIONS flag : Notifies which file operation to be performed.
-        char *filename : File that to be operated.
-        char *namespace_path : Path of the namespace.
-        namespace_dtl set_namespace : Contains namespace information to perform
-                                        file operations.
+        char *buffer : Path of the namespace.
+        int *ret : Return value 0 on success -1 on failure.
 Output:
-        int : Return 0 on success -1 on failure.
+        namespace_dtl set_namespace : Contains namespace information to perform
+                                        edit operations.
 */
-int
-file_operation(enum OPTIONS flag, char *filename, char *namespace_path,
-namespace_dtl set_namespace)
+namespace_dtl
+get_namespace_method(char *buffer, int *ret)
 {
-        char    *buffer         =       NULL;
-        DIR     *dp             =       NULL;
-        int     index           =        0;
-        int     ret             =       -1;
-        int     fd              =       -1;
-        char    namespace_filename[LENGTH];
         char    *token1         =       NULL;
         char    *token2         =       NULL;
         char    *str            =       NULL;
@@ -540,40 +629,16 @@ namespace_dtl set_namespace)
         const char dlmtr2[2]    =       "\n";
         char    *saveptr1       =       NULL;
         char    *saveptr2       =       NULL;
-        char    path[LENGTH]    =       "";
-        char    confirm         =       -1;
-        static namespace_dtl get_namespace;
+        int     index           =       0;
+        namespace_dtl get_namespace;
 
-        if (namespace_path == NULL) {
-                goto out;
-        }
-
-        if (set_namespace.namespace_name == NULL) {
-                printf("Namespace not specified");
-                goto out;
-        }
-
-        sprintf(namespace_filename, "%s/%s.yadl", namespace_path,
-                set_namespace.namespace_name);
-        fd = open(namespace_filename, O_RDONLY, S_IWUSR|S_IRUSR);
-        if (fd < 1) {
-                fprintf(stderr, "%s\nNamespace does not exists\n",
-                        strerror(errno));
-                goto out;
-        }
-        buffer = (char *)calloc(1, LENGTH);
-        ret = read(fd, buffer, LENGTH);
-        if (ret < 0) {
-                fprintf(stderr, "%s\n", strerror(errno));
-                goto out;
-        }
-
+        *ret    =       -1;
         for (str = buffer ; ; str = NULL) {
                 token1 = strtok_r(str, dlmtr2, &saveptr1);
                 if (token1 == NULL)
                         break;
 
-               for (sub_str = token1 ; ; sub_str = NULL) {
+                for (sub_str = token1 ; ; sub_str = NULL) {
                         token2 = strtok_r(sub_str, dlmtr1, &saveptr2);
                         if (token2 == NULL)
                                 break;
@@ -609,6 +674,65 @@ namespace_dtl set_namespace)
                 }
                 index = 0;
         }
+        *ret = 0;
+out:
+        return get_namespace;
+}
+
+/*Function to call different file operation functions with vaid inputs.
+ initiate various stores.
+Input:
+        enum OPTIONS flag : Notifies which file operation to be performed.
+        char *filename : File that to be operated.
+        char *namespace_path : Path of the namespace.
+        namespace_dtl set_namespace : Contains namespace information to perform
+                                        file operations.
+Output:
+        int : Return 0 on success -1 on failure.
+*/
+int
+file_operation(enum OPTIONS flag, char *filename, char *namespace_path,
+namespace_dtl set_namespace)
+{
+        char    *buffer         =       NULL;
+        DIR     *dp             =       NULL;
+        int     ret             =       -1;
+        int     fd              =       -1;
+        char    namespace_filename[LENGTH];
+        char    path[LENGTH]    =       "";
+        char    confirm         =       -1;
+        static namespace_dtl get_namespace;
+
+        if (namespace_path == NULL) {
+                goto out;
+        }
+
+        if (set_namespace.namespace_name == NULL) {
+                printf("Namespace not specified");
+                goto out;
+        }
+
+        sprintf(namespace_filename, "%s/%s.yadl", namespace_path,
+                set_namespace.namespace_name);
+        fd = open(namespace_filename, O_RDONLY, S_IWUSR|S_IRUSR);
+        if (fd < 1) {
+                fprintf(stderr, "%s\nNamespace does not exists\n",
+                        strerror(errno));
+                goto out;
+        }
+        buffer = (char *)calloc(1, LENGTH);
+        ret = read(fd, buffer, LENGTH);
+        if (ret < 0) {
+                fprintf(stderr, "%s\n", strerror(errno));
+                goto out;
+        }
+
+        get_namespace = get_namespace_method(buffer, &ret);
+        if (ret < 0) {
+                fprintf(stderr, "%s\n", strerror(errno));
+                goto out;
+        }
+
         sprintf(path, "%s/store_block", get_namespace.store_path);
         dp = opendir(path);
         if (NULL == dp) {
@@ -627,7 +751,8 @@ namespace_dtl set_namespace)
         ret = init_catalog_store(path);
         if (ret == -1)
                 goto out;
-        if (flag == dedup) {
+        switch (flag) {
+        case dedup:
                 if (filename == NULL) {
                         printf("File name requried :"
                         "Try $>yadl --help for more information\n");
@@ -636,8 +761,8 @@ namespace_dtl set_namespace)
                 ret = dedup_file(get_namespace, filename);
                 if (ret < 0)
                         goto out;
-        }
-        if (flag == restore) {
+                break;
+        case restore:
                 if (filename == NULL) {
                         printf("File name requried :"
                         "Try $>yadl --help for more information\n");
@@ -646,8 +771,8 @@ namespace_dtl set_namespace)
                 ret = restore_file(filename, get_namespace.store_path);
                 if (ret < 0)
                         goto out;
-        }
-        if (flag == delete_file) {
+                break;
+        case delete_file:
                 printf("Do you want to continue with deletion?[y/n]");
                 if (scanf("%c", &confirm) <= 0) {
                         fprintf(stderr, "%s\n", strerror(errno));
@@ -665,13 +790,13 @@ namespace_dtl set_namespace)
                                 goto out;
                         printf("\nStub deleted\n");
                 }
-        }
-        if (flag == list) {
+                break;
+        case list:
                 ret = readfilecatalog();
                 if (ret < 0)
                         goto out;
-        }
-        if (flag == reset) {
+                break;
+        case reset:
                 ret = clear_store(get_namespace.store_path);
                 if (ret < 0)
                         goto out;
@@ -689,6 +814,9 @@ namespace_dtl set_namespace)
                         fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
                 }
+                break;
+        default:
+                break;
         }
         ret = fini_block_store();
         if (ret == -1)
@@ -726,6 +854,7 @@ start_program(int argc, char **argv, char *namespace_path)
         char    *file_path              =     NULL;
         enum    OPTIONS flag            =       -1;
         int     option_index            =        0;
+        int     i                       =        0;
         static namespace_dtl set_namespace;
 
         const char *short_options = "cn:p:h:s:df:ilRre";
@@ -771,6 +900,13 @@ start_program(int argc, char **argv, char *namespace_path)
                         }
                         if (strcmp(long_options[option_index].name,
                         "chunk_size") == 0) {
+                                for (i = 0; optarg[i]; i++) {
+                                        if (!isdigit(optarg[i])) {
+                                                printf("Invalid chunk size\n");
+                                                ret = -1;
+                                                goto out;
+                                        }
+                                }
                                 set_namespace.chunk_size = atoi(optarg);
                         }
                         if (strcmp(long_options[option_index].name,
@@ -889,17 +1025,17 @@ start_program(int argc, char **argv, char *namespace_path)
                 goto out;
         }
         switch (flag) {
-        case 0:
+        case create:
                 ret = create_namespace(namespace_path, set_namespace);
                 if (ret == -1)
                         goto out;
                 break;
-        case 1:
+        case edit:
                 ret = edit_namespace(namespace_path, set_namespace);
                 if (ret == -1)
                         goto out;
                 break;
-        case 2:
+        case delete_file:
                 if (file_path == NULL) {
                         ret = delete_namespace(namespace_path, set_namespace);
                         if (ret < 0) {
@@ -907,22 +1043,22 @@ start_program(int argc, char **argv, char *namespace_path)
                         }
                         break;
                 }
-        case 3:
-        case 4:
-        case 6:
+        case dedup:
+        case restore:
+        case list:
                 if (set_namespace.namespace_name == NULL) {
                         ret = list_namespace(argc, namespace_path);
                         if (ret == -1)
                                 goto out;
                         break;
                 }
-        case 7:
+        case reset:
                 ret = file_operation(flag, file_path, namespace_path,
                         set_namespace);
                 if (ret == -1)
                         goto out;
                 break;
-        case 5:
+        case info:
                 ret = namespace_info(namespace_path, set_namespace);
                 if (ret == -1)
                         goto out;
