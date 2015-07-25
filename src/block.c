@@ -8,12 +8,25 @@ static struct block_store fd;
 Input:void
 Output:int*/
 int
-init_block_store()
+init_block_store(char *path)
 {
 
         int ret         =       -1;
+        DIR *dp = NULL;
+        char filename[1024], block_path[1024];
 
-        fd.fd_block = open("blockstore.txt", O_APPEND|O_CREAT|O_RDWR,
+        strcpy(block_path,path);
+        sprintf(block_path, "%s/blocks", block_path);
+        dp = opendir(block_path);
+        if (NULL == dp) {
+                ret = mkdir(block_path, 0777);
+                if (ret < 0) {
+                        fprintf(stderr, "%s\n", strerror(errno));
+                        goto out;
+                }
+        }
+        sprintf (filename,"%s/blockstore.txt",block_path);
+        fd.fd_block = open(filename, O_APPEND|O_CREAT|O_RDWR,
                 S_IWUSR|S_IRUSR);
         if (fd.fd_block == -1) {
                 printf("\nCreation of block file failed with error [%s]\n",
@@ -22,6 +35,8 @@ init_block_store()
         }
         ret = 0;
 out:
+        if (dp != NULL)
+                closedir(dp);
         return ret;
 
 }

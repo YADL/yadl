@@ -35,13 +35,13 @@ int getposition(char* hash);
 @in: char* path-path of file to be restored
 @out: int
 @return: -1 for error and 0 if found. */
-int restorefile(char* path);
+int restorefile(char* path, char *store_path);
 
 /*@description:Function to search whether file path is present or not.If present will call restorefile to restore file. 
 @in: void
 @out: int
 @return: -1 for error and 0 if found. */
-int restore_file();
+int restore_file(char *file_path, char *store_path);
 
 /*@description:Function to get specific block from specified position 
 @in: int pos-position of block,
@@ -53,4 +53,4 @@ char* get_block(int pos, int *length);
 @in: char *hash - hash of block
 @out: char*
 @return: block */
-char *get_block_from_object(char *hash,int *length);
+char *get_block_from_object(char *hash,int *length, char *store_path);

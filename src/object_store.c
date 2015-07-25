@@ -6,7 +6,7 @@ Input:  vector_ptr list : buffer containing block,size_t length-size of block
 Output: int : -1 for error and 0 if inserted successfully */
 
 int
-insert_block_to_object(char *hash, vector_ptr list)
+insert_block_to_object(char *hash, vector_ptr list, char *store_path)
 {
 
         DIR *dp1 = NULL;
@@ -15,15 +15,11 @@ insert_block_to_object(char *hash, vector_ptr list)
         int ret = 0;
         int fd = -1;
         vector_ptr temp_node = NULL;
-        char path[1024], filename[50];
+        char path[1024], filename[1024];
         struct stat st;
 
-        if (getcwd(path, sizeof(path)) == NULL) {
-                fprintf(stderr, "%s\n", strerror(errno));
-                goto out;
-        }
-
-        sprintf(path, "%s/block", path);
+	strcpy(path, store_path);
+        sprintf(path, "%s/store_block/blocks", path);
         dp1 = opendir(path);
         if (NULL == dp1) {
                 ret = mkdir(path, 0777);
@@ -88,7 +84,7 @@ Input:  int *length     : length of the hash
         char *hash      : hash value of the block
 Output: int : -1 for error and 0 if inserted successfully */
 char
-*get_block_from_object(char *hash, int *length)
+*get_block_from_object(char *hash, int *length, char *store_path)
 {
 
         DIR *dp1 = NULL;
@@ -99,12 +95,8 @@ char
         char *buffer = NULL;
         struct stat st;
 
-        if (getcwd(path, sizeof(path)) == NULL) {
-                fprintf(stderr, "%s\n", strerror(errno));
-                goto out;
-        }
-
-        sprintf(path, "%s/block/%c%c", path, hash[0], hash[1]);
+	strcpy(path, store_path);
+        sprintf(path, "%s/store_block/blocks/%c%c", path, hash[0], hash[1]);
         dp1 = opendir(path);
         if (NULL == dp1) {
                 fprintf(stderr, "%s\n", strerror(errno));

@@ -33,7 +33,11 @@ struct block_store
 @in: void
 @out: int 
 @return: -1 for error and 0 if created successfully */
+<<<<<<< HEAD
+int init_block_store(char* path);
+=======
 int init_block_store();
+>>>>>>> master
 
 /*@description:Function to get specific block from specified position 
 @in: int pos-position of block,

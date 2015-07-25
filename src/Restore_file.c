@@ -1,29 +1,19 @@
 #include "restore.h"
 #include "catalog.h"
 #include "clean_buff.h"
+#include "stub.h"
 
 /*Function to enter a filename that has to be restored.
 Input:void
 Output:int
 */
 int
-restore_file()
+restore_file(char *file_path, char *store_path)
 {
 
         int ret         =       -1;
-        char* path      =       NULL;
 
-        printf("\ndeduped files\n");
-        ret = readfilecatalog();
-        if (ret == -1) {
-                goto out;
-        }
-        path = (char *)calloc(1, FILE_SIZE);
-        printf("\nEnter the full path of dedup file to be restored\n");
-        if (scanf("%s", path) <= 0) {
-                goto out;
-        }
-        ret = comparepath(path);
+        ret = comparepath(file_path);
         if (ret == -1) {
                 goto out;
         }
@@ -31,13 +21,12 @@ restore_file()
                 printf("\nInvalid path");
                 goto out;
         }
-        ret = restorefile(path);
+        ret = restorefile(file_path, store_path);
         if (ret == -1) {
                 goto out;
         }
         ret = 0;
 out:
-        clean_buff(&path);
         return ret;
 
 }
@@ -47,12 +36,11 @@ Input   :  char* path
 Output  :  int
 */
 int
-restorefile(char *path)
+restorefile(char *path, char *store_path)
 {
 
         int l                   =       0;
         int ret                 =      -1;
-        char temp_name[NAME_SIZE]    = "";
         int size                =       0;
         int size1               =       0;
         int     pos             =       0;
@@ -74,14 +62,11 @@ restorefile(char *path)
         ts2 = strdup(path);
         dir = dirname(ts1);
         filename1 = basename(ts2);
-        sprintf(dir, "%s/", dir);
-        sprintf(temp_name, "%sDedup_%s", dir, filename1);
         printf("%s\n", dir);
-        printf("\npath%s", path);
-        printf("%s\n", filename1);
-        printf("\n%s\n", temp_name);
-        sd1 = open(temp_name, O_RDONLY, S_IRUSR|S_IWUSR);
-        if (sd1 < 1) {
+        printf("\npath : %s\n", path);
+        printf("File : %s\n", filename1);
+        ret = init_stub_store(store_path, filename1, &sd1);
+        if (ret < 0) {
                 fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
         } else {
@@ -95,7 +80,7 @@ restorefile(char *path)
                 fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
         } else {
-                printf("\nRestore file created\n");
+                printf("Restore file created\nRestore in progress...\n");
         }
         if (size > 0) {
                 if (-1 == lseek(sd1,0,SEEK_SET)) {
@@ -145,7 +130,7 @@ restorefile(char *path)
                                 goto out;
                         }
                 } else {
-                        buffer2 = get_block_from_object(buffer, &l);
+                        buffer2 = get_block_from_object(buffer, &l, store_path);
                         if (buffer2 == NULL)
                                 goto out;
                 }

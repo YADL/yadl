@@ -4,6 +4,8 @@
 #include "Rabin_Karp.h"
 #include "catalog.h"
 #include "hash.h"
+#include "namespace.h"
+#include "stub.h"
 
 #define NAME_SIZE 100
 
@@ -13,10 +15,14 @@ Input:char* filename,int chunk_type,int hash_type,int block_size
 Output:int
 */
 int
-dedup_file (char *filename, int chunk_type, int hash_type, int block_size,
-int store_type)
+dedup_file (namespace_dtl namespace_input, char *file_path)
 {
 
+        char *filename          =       NULL;
+        int chunk_type          =       0;
+        int hash_type           =       0;
+        int block_size          =       0;
+        int store_type          =       0;
         int ret                 =       -1;
         int fd_input            =       -1;
         int fd_stub             =       -1;
@@ -27,25 +33,38 @@ int store_type)
         int size                =       0;
         int chunk_flag          =       0;
         int chunk_length        =       0;
+        char confirm             =      -1;
         char *hash              =       NULL;
         char *ts1               =       NULL;
-        char *ts2               =       NULL;
-        char *dir               =       NULL;
         char *filename1         =       NULL;
-        char temp_name[NAME_SIZE] =      "";
         char *buffer            =       NULL;
         char *chunk_buffer      =       NULL;
         FILE *fp                =       NULL;
         struct stat st;
         vector_ptr list         =       NULL;
 
+        if (strcmp(namespace_input.hash_type, "md5") == 0)
+                hash_type = 0;
+        else
+                hash_type = 1;
+
+        if (strcmp(namespace_input.store_type, "default") == 0)
+                store_type = 0;
+        else
+                store_type = 1;
+
+        if (strcmp(namespace_input.chunk_scheme, "fixed") == 0) {
+                chunk_type = 0;
+                block_size = namespace_input.chunk_size;
+        } else {
+                chunk_type = 1;
+                block_size = 0;
+        }
+
+        filename = file_path;
         ts1 = strdup(filename);
-        ts2 = strdup(filename);
-        dir = dirname(ts1);
-        filename1 = basename(ts2);
-        sprintf(dir, "%s/", dir);
-        sprintf(temp_name, "%sDedup_%s", dir, filename1);
-        fd_input = open(filename, O_APPEND|O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
+        filename1 = basename(ts1);
+        fd_input = open(filename, O_RDONLY, S_IRUSR|S_IWUSR);
         if (fd_input < 1) {
                 fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
@@ -55,11 +74,18 @@ int store_type)
                 goto out;
         }
         if (ret == 0) {
-                printf("\nfile is already deduped");
-                goto out;
+                printf("\nFile is already deduped."
+                        "Do you want to overwrite?[Y/N]");
+                if (scanf("%c", &confirm) <= 0) {
+                        fprintf(stderr, "%s\n", strerror(errno));
+                        goto out;
+                }
+                if (confirm != 'y' && confirm != 'Y')
+                        goto out;
         }
-        fd_stub = open(temp_name, O_APPEND|O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
-        if (fd_stub < 1) {
+        printf("\nDeduplication in progress...\n");
+        ret = init_stub_store(namespace_input.store_path, filename1, &fd_stub);
+        if (ret < 0) {
                 fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
         }
@@ -69,7 +95,7 @@ int store_type)
         }
         fstat(fd_input, &st);
         size = st.st_size;
-        if (chunk_type == 1) {
+        if (chunk_type == 0) {
                 while (1) {
                         list = NULL;
                         if (size <= block_size) {
@@ -90,7 +116,8 @@ int store_type)
                         if (ret == -1)
                                 goto out;
                         ret = chunk_store(list, hash, length, h_length,
-                        b_offset, e_offset, fd_stub, store_type);
+                        b_offset, e_offset, fd_stub, store_type,
+                        namespace_input.store_path);
                         if (ret == -1)
                                 goto out;
                         e_offset++;
@@ -132,7 +159,8 @@ int store_type)
                         if (ret == -1)
                                 goto out;
                         ret = chunk_store(list, hash, length,
-                                h_length, b_offset, e_offset, fd_stub, store_type);
+                                h_length, b_offset, e_offset, fd_stub,
+                                store_type, namespace_input.store_path);
                         if (ret == -1)
                                 goto out;
                         fprintf(fp, "%d\n", length);
@@ -143,7 +171,8 @@ int store_type)
                                 break;
                 }
         }
-        ret = writecatalog(filename);
+        if (confirm == -1)
+                ret = writecatalog(filename);
         if (ret == -1)
                 goto out;
         ret = 0;
@@ -192,12 +221,12 @@ get_hash(int hash_type, char **hash, int *h_length, vector_ptr list)
         char *buff      =       NULL;
 
         switch (hash_type) {
-        case 1:
+        case 0:
                 buf = str2md5(list);
                 *hash = buf;
                 *h_length = strlen(buf);
                 break;
-        case 2:
+        case 1:
                 buff = sha1(list);
                 *hash = buff;
                 *h_length = strlen(buff);
@@ -216,7 +245,7 @@ Output:int
 */
 int
 chunk_store(vector_ptr list, char *hash, int length, int h_length, int e_offset,
-int b_offset, int fd_stub, int store_type)
+int b_offset, int fd_stub, int store_type, char *store_path)
 {
 
         int off                 =       -1;
@@ -252,7 +281,7 @@ int b_offset, int fd_stub, int store_type)
                         }
                 }
         } else {
-                ret = insert_block_to_object(hash, list);
+                ret = insert_block_to_object(hash, list, store_path);
                 if (ret == -1) {
                         fprintf(stderr, "%s\n", strerror(errno));
                         goto out;

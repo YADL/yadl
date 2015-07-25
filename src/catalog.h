@@ -29,7 +29,7 @@
 @in: void
 @out: int 
 @return: -1 for error and 0 if created successfully */
-int init_catalog_store();
+int init_catalog_store(char *path);
 
 /*@description:Function to write the full path of file to catalog
 @in: char* filename-filename of file that has been deduped
@@ -48,6 +48,8 @@ int readfilecatalog();
 @out: int 
 @return: -1 for error and 0 if created successfully */
 int comparepath(char out[]);
+
+int reset_catalog(char *file_path, char *path);
 
 /*@description:Function to close filedescriptor of catalogstore
 @in: void

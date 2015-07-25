@@ -7,12 +7,26 @@ static int fd_hash;
 Input:void
 Output:int*/
 int
-init_hash_store()
+init_hash_store(char *path)
 {
 
         int ret         =       -1;
+        DIR *dp = NULL;
+        char filename[1024], hash_path[1024];
+	 
+	strcpy(hash_path,path);
+	sprintf(hash_path, "%s/hashs", hash_path);
 
-        fd_hash = open("filehashDedup.txt", O_APPEND|O_CREAT|O_RDWR,
+        dp = opendir(hash_path);
+        if (NULL == dp) {
+                ret = mkdir(hash_path, 0777);
+                if (ret < 0) {
+                        fprintf(stderr, "%s\n", strerror(errno));
+                        goto out;
+                }
+        }
+	sprintf (filename,"%s/filehashDedup.txt",hash_path);
+        fd_hash = open(filename, O_APPEND|O_CREAT|O_RDWR,
                 S_IRUSR|S_IWUSR);
         if (fd_hash == -1) {
                 printf("\nCreation of hash file failed with error [%s]\n",
@@ -22,6 +36,8 @@ init_hash_store()
         ret = 0;
 
 out:
+        if (dp != NULL)
+                closedir(dp);
         return ret;
 
 }

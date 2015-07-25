@@ -26,12 +26,6 @@
 #include<openssl/sha.h>
 #endif
 #define int_size sizeof(int)
-/*
-Function to dedup a file whose path is specified by the user.
-Input:char* filename,int chunk_type,int hash_type,int block_size
-Output:int
-*/
-int dedup_file (char* filename,int chunk_type,int hash_type,int block_size,int store);
 
 /*@description:Function to get hash of a particular block.
 @in: vector_ptr list-block contents strored in vector,int length-length of buffer,
@@ -114,7 +108,7 @@ char* sha1(vector_ptr list);
 @in: vector_ptr list-buffer containing block,size_t length-size of block
 @out: int 
 @return: -1 for error and 0 if inserted successfully */
-int insert_block_to_object(char *hash,vector_ptr list);
+int insert_block_to_object(char *hash,vector_ptr list, char *store_path);
 
 /*@description:Function to get chunk from file
 @in: char **buffer-buffer containing block,size_t length-size of block, int fd_input -
@@ -131,5 +125,5 @@ int e_offset - Ending offset, int b_offset - Beginning offset.
 @out: int 
 @return: -1 for error and 0 if inserted successfully */
 int chunk_store(vector_ptr list, char *hash, int length, int h_length,
-        int e_offset, int b_offset, int fd_stub, int store);
+        int e_offset, int b_offset, int fd_stub, int store, char *store_path);
 
