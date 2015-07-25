@@ -1,6 +1,13 @@
 #include "main.h"
 #include "string.h"
 #include "namespace.h"
+#include "catalog.h"
+#include "block.h"
+#include "hash.h"
+#include "dedup.h"
+#include "restore.h"
+#include "delete.h"
+#include "string.h"
 
 /*Main program!*/
 int
