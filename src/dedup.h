@@ -27,7 +27,6 @@
 #endif
 #define int_size sizeof(int)
 
-
 /*@description:Function to get hash of a particular block.
 @in: vector_ptr list-block contents strored in vector,int length-length of buffer,
         int hash_type-type of hash(sha1 or md5)
