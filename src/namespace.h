@@ -25,6 +25,7 @@ struct namespace_struct
 typedef struct namespace_struct namespace_dtl;
 
 #define LENGTH 1024
+#define EX_LEN 5
 
 /*@description:Function to to give correct instruction to use the various information.
 Input:

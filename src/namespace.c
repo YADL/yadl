@@ -61,6 +61,8 @@ print_usage (FILE *stream, int exit_code)
                 "$> yadl --delete/-d -n <namespace_name> --file/-f <file_path>\n"
                 "\nList files in namespace:\n"
                 "$> yadl --list/-l -n <namespace_name>\n\n"
+                "Help : \n"
+                "$> yadl --help\n\n"
                 );
 }
 
@@ -253,7 +255,7 @@ create_namespace(char *namespace_path, namespace_dtl set_namespace)
                 ret = write (fd, content, strlen(content));
                 if (ret < 0)
                         goto out;
-                printf("namespace created %s\n", file_path);
+                printf("Namespace created\n");
                 memset(store_path, 0, LENGTH);
                 sprintf(store_path, "%s/store_block", set_namespace.store_path);
                 store_dp = opendir(store_path);
@@ -264,7 +266,7 @@ create_namespace(char *namespace_path, namespace_dtl set_namespace)
                                 goto out;
                         }
                 }
-                printf("store created %s\n", store_path);
+                printf("Store is created at %s\n", store_path);
         } else {
                 printf("namespace already present\n");
         }
@@ -290,12 +292,13 @@ Output:
 int
 namespace_info(char *namespace_path, namespace_dtl set_namespace)
 {
-        int     ret             =       -1;
-        int     fd              =       -1;
-        int     count           =        0;
-        char    filename[LENGTH]  =       "";
-        char    content[LENGTH]   =       "";
-        DIR           *dp       =       NULL;
+        int     ret                =       -1;
+        int     fd                 =       -1;
+        int     count              =        0;
+        char    filename[LENGTH]   =       "";
+        char    filename1[LENGTH]  =       "";
+        char    content[LENGTH]    =       "";
+        DIR           *dp          =       NULL;
         struct dirent *dir;
 
         if (set_namespace.namespace_name == NULL) {
@@ -308,12 +311,12 @@ namespace_info(char *namespace_path, namespace_dtl set_namespace)
         if (strcmp(set_namespace.namespace_name, "all") != 0) {
                 sprintf(filename, "%s/%s.yadl", namespace_path,
                         set_namespace.namespace_name);
-                printf("%s :\n", filename);
                 fd = open(filename, O_RDONLY, S_IRUSR|S_IWUSR);
                 if (fd < 1) {
                         fprintf(stderr, "%s\n", strerror(errno));
                         goto out;
                 }
+                printf("%s :\n", set_namespace.namespace_name);
                 ret = read(fd, content, LENGTH);
                 if (ret < 0) {
                         fprintf(stderr, "%s\n", strerror(errno));
@@ -328,7 +331,10 @@ namespace_info(char *namespace_path, namespace_dtl set_namespace)
                                 strcmp(dir->d_name, "..") != 0) {
                                         sprintf(filename, "%s/%s",
                                                 namespace_path, dir->d_name);
-                                        printf("\n%s:", filename);
+                                        sprintf(filename1, "%s", dir->d_name);
+                                        filename1[strlen(filename1) - EX_LEN] =
+                                                '\0';
+                                        printf("\n==== %s ====", filename1);
                                         fd = open(filename, O_RDONLY,
                                                 S_IRUSR|S_IWUSR);
                                         if (fd < 1) {
@@ -386,14 +392,15 @@ list_namespace(int argc, char *namespace_path)
         if (argc != 2) {
                 goto out;
         }
+        printf("Namespaces :\n============\n");
         dp = opendir(namespace_path);
         if (dp) {
                 while ((dir = readdir(dp)) != NULL) {
                         if (strcmp(dir->d_name, ".") != 0 &&
                                 strcmp(dir->d_name, "..") != 0) {
-                                sprintf(filename, "%s/%s",
-                                        namespace_path, dir->d_name);
-                                printf("\n%s\n", filename);
+                                sprintf(filename, "%s", dir->d_name);
+                                filename[strlen(filename) - EX_LEN] = '\0';
+                                printf("=>%s\n", filename);
                                 count++;
                         }
                 }
@@ -446,12 +453,12 @@ edit_namespace(char *namespace_path, namespace_dtl set_namespace)
         sprintf(replace, "desc:%s", set_namespace.desc);
         sprintf(filename, "%s/%s.yadl", namespace_path,
                 set_namespace.namespace_name);
-        printf("%s :\n", filename);
         fd = open(filename, O_RDONLY, S_IRUSR|S_IWUSR);
         if (fd < 1) {
                 fprintf(stderr, "%s\n", strerror(errno));
                 goto out;
         }
+        printf("%s :\n", set_namespace.namespace_name);
         ret = read(fd, content, LENGTH);
         if (ret < 0) {
                 fprintf(stderr, "%s\n", strerror(errno));
@@ -843,7 +850,7 @@ start_program(int argc, char **argv, char *namespace_path)
         int     i                       =        0;
         static namespace_dtl set_namespace;
 
-        const char *short_options = "cn:p:h:s:df:ilRre";
+        const char *short_options = "cn:p:h:s:df:ilRreb";
 
         const struct option long_options[] = {
                 {"create",          no_argument,            0,   'c'},
@@ -854,7 +861,7 @@ start_program(int argc, char **argv, char *namespace_path)
                 {"chunk_scheme",    required_argument,      0,   0 },
                 {"chunk_size",      required_argument,      0,   0 },
                 {"desc",            required_argument,      0,   0 },
-                {"dedup",           no_argument,            0,   0 },
+                {"dedup",           no_argument,            0,   'b'},
                 {"file",            required_argument,      0,   'f'},
                 {"restore",         no_argument,            0,   'r'},
                 {"delete",          no_argument,            0,   'd'},
@@ -900,15 +907,6 @@ start_program(int argc, char **argv, char *namespace_path)
                                 set_namespace.desc = optarg;
                         }
                         if (strcmp(long_options[option_index].name,
-                        "dedup") == 0) {
-                                if (flag != -1) {
-                                        printf("Trying to use more than one operation:"
-                                        "Try $>yadl --help for more information\n");
-                                        goto out;
-                                }
-                                flag = dedup;
-                        }
-                        if (strcmp(long_options[option_index].name,
                         "help") == 0) {
                                 print_usage(stderr, 1);
                                 goto out;
@@ -922,6 +920,15 @@ start_program(int argc, char **argv, char *namespace_path)
                                 goto out;
                         }
                         flag = create;
+                        break;
+
+                case 'b':
+                        if (flag != -1) {
+                                printf("Trying to use more than one operation:"
+                                "Try $>yadl --help for more information\n");
+                                goto out;
+                        }
+                        flag = dedup;
                         break;
 
                 case 'n':
@@ -1032,7 +1039,7 @@ start_program(int argc, char **argv, char *namespace_path)
         case dedup:
         case restore:
         case list:
-                if (set_namespace.namespace_name == NULL) {
+                if (set_namespace.namespace_name == NULL && flag == list) {
                         ret = list_namespace(argc, namespace_path);
                         if (ret == -1)
                                 goto out;
