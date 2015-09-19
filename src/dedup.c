@@ -6,6 +6,7 @@
 #include "hash.h"
 #include "namespace.h"
 #include "stub.h"
+#include "parsing.h"
 
 #define NAME_SIZE 100
 
@@ -219,10 +220,12 @@ get_hash(int hash_type, char **hash, int *h_length, vector_ptr list)
         int ret         =       -1;
         char *buf       =       NULL;
         char *buff      =       NULL;
+	DIGEST *digest  =     NULL;
 
         switch (hash_type) {
         case 0:
-                buf = str2md5(list);
+                digest = str2md5(list);
+                buf = parse(digest, MD5_DIGEST_LENGTH);
                 *hash = buf;
                 *h_length = strlen(buf);
                 break;

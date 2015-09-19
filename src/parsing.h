@@ -3,6 +3,8 @@
 #include <ctype.h> 
 #include <stdlib.h>
 #include "md5.h"
+
+typedef unsigned char DIGEST;
 /*
  * Function to convert hexadecimal digit to integer.
  * Input:char digit

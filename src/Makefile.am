@@ -5,14 +5,17 @@ lib_LTLIBRARIES = libyadl.la
 libyadl_la_SOURCES = dedup.c Restore_file.c \
 					 hash.c block.c stub.c clean_buff.c \
 					 catalog.c md5.c sha1.c Rabin_Karp.c \
-					 vector.c object_store.c namespace.c
-libyadl_la_LDFLAGS = -lssl -lcrypto 
+					vector.c object_store.c namespace.c \
+					ldb.c parsing.c min_hash.c
+
+libyadl_la_LDFLAGS = -lssl -lcrypto -lleveldb
 
 noinst_HEADERS = block.h catalog.h clean_buff.h \
 				 config.h dedup.h \
 				 hash.h main.h md5.h restore.h \
 				 sha1.h stub.h Rabin_Karp.h \
-				 vector.h object_store.h namespace.h
+				 vector.h object_store.h namespace.h \
+				ldb.h parsing.h min_hash.h
 
 # Create a program called 'dedup' but do not install it
 bin_PROGRAMS = yadl_dedup

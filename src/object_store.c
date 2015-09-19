@@ -18,8 +18,19 @@ insert_block_to_object(char *hash, vector_ptr list, char *store_path)
         char path[1024], filename[1024];
         struct stat st;
 
-	strcpy(path, store_path);
-        sprintf(path, "%s/store_block/blocks", path);
+        strcpy(path, store_path);
+        sprintf(path, "%s/store_block", path);
+        dp1 = opendir(path);
+        if (NULL == dp1) {
+                ret = mkdir(path, 0777);
+                if (ret < 0) {
+                        fprintf(stderr, "%s\n", strerror(errno));
+                        goto out;
+                }
+        }
+        if (dp1 != NULL)
+                closedir(dp1);
+        sprintf(path, "%s/blocks", path);
         dp1 = opendir(path);
         if (NULL == dp1) {
                 ret = mkdir(path, 0777);

@@ -5,6 +5,7 @@
 #include "restore.h"
 #include "stub.h"
 
+
 /*Function to to give correct instruction to use the various information.
 Input:
         FILE *stream : Type of error.
@@ -31,6 +32,11 @@ print_usage (FILE *stream, int exit_code)
                 " -R --reset       Clear all the stores of perticular namespace\n"
                 " -d --delete      Delete perticular namespace or perticular file\n"
                 " --dedup          Dedup file\n"
+                " -m --min_hash    Dedup using min hash\n"
+                " --similarity     Percentage of similarity\n"
+                " --min_hash_type  Min hash type to be used\n"
+                " --segments       Number of chunks in a segment\n"
+                " --prime          Range of prime number"
                 " -r --restore     Restore file\n"
                 " -f --file        File path to perform various file operation\n"
                 " --help           Prints usage\n"
@@ -38,7 +44,7 @@ print_usage (FILE *stream, int exit_code)
                 "Creat namespace:\n"
                 "$> yadl --create/-c  -n <namespace_name> --store_path <store_path>\n"
                 "[--hash_type {md5/sha1}]\n"
-                "[--chuck_scheme {variable/fixed} [--chuck_size <chuck_size>]  ]\n"
+                "[--chunk_scheme {variable/fixed} [--chunk_size <chunk_size>]  ]\n"
                 "[--store_type {default/object}] [--desc <namespace_description>]\n"
                 "\nInfo of namespace:\n"
                 "$> yadl --info/-i -n <namespace_name>\n"
@@ -55,6 +61,10 @@ print_usage (FILE *stream, int exit_code)
                 "\nFile operations:\n================\n"
                 "Dedup file:\n"
                 "$> yadl --dedup -n <namespace_name> --file/-f <file_path>\n"
+                "\nMin hash dedup\n"
+                "$>yadl --min_hash/-m --similarity <Percentage similarity> "
+                "--segments <Number of chunks> --min_hash_type {default, xor} "
+                "-f/--file <file path> [--prime <Range of prime number>]\n"
                 "\nRestore file:\n"
                 "$> yadl --restore/-r -n <namespace_name> --file/-f <file_path>\n"
                 "\nDelete file:\n"
@@ -509,6 +519,7 @@ delete_namespace(char *namespace_path, namespace_dtl set_namespace)
         char    namespace_file[LENGTH]  =       "";
         char    filename[LENGTH]        =       "";
         DIR           *dp               =       NULL;
+        minhash_config  set_minhash_config;
         struct dirent *dir;
 
         if (namespace_path == NULL) {
@@ -534,7 +545,8 @@ delete_namespace(char *namespace_path, namespace_dtl set_namespace)
                                         sprintf(filename, "%s/%s",
                                                 namespace_path, namespace_file);
                                         ret = file_operation(reset, "delete",
-                                                namespace_path, set_namespace);
+                                                namespace_path, set_namespace,
+                                                set_minhash_config);
                                         if (ret == -1 || ret == 1) {
                                                 goto out;
                                         }
@@ -685,7 +697,7 @@ Output:
 */
 int
 file_operation(enum OPTIONS flag, char *filename, char *namespace_path,
-namespace_dtl set_namespace)
+namespace_dtl set_namespace, minhash_config minhash_config_dtl)
 {
         char    *buffer         =       NULL;
         DIR     *dp             =       NULL;
@@ -753,6 +765,16 @@ namespace_dtl set_namespace)
                 }
                 ret = dedup_file(get_namespace, filename);
                 if (ret < 0)
+                        goto out;
+                break;
+        case minhash:
+                if(filename == NULL) {
+                        printf("File name requried :"
+                        "Try $>yadl --help for more information\n");
+                        goto out;
+                }
+                ret = min_hash(filename, minhash_config_dtl);
+                if(ret < 0)
                         goto out;
                 break;
         case restore:
@@ -848,9 +870,10 @@ start_program(int argc, char **argv, char *namespace_path)
         enum    OPTIONS flag            =       -1;
         int     option_index            =        0;
         int     i                       =        0;
+        minhash_config  set_minhash_config;
         static namespace_dtl set_namespace;
 
-        const char *short_options = "cn:p:h:s:df:ilRreb";
+        const char *short_options = "cn:p:h:s:df:ilRrebm";
 
         const struct option long_options[] = {
                 {"create",          no_argument,            0,   'c'},
@@ -862,6 +885,11 @@ start_program(int argc, char **argv, char *namespace_path)
                 {"chunk_size",      required_argument,      0,   0 },
                 {"desc",            required_argument,      0,   0 },
                 {"dedup",           no_argument,            0,   'b'},
+                {"min_hash",        no_argument,            0,   'm'},
+                {"prime",           required_argument,      0,     0},
+                {"segments",        required_argument,      0,     0},
+                {"min_hash_type",   required_argument,      0,     0},
+                {"similarity",      required_argument,      0,     0},
                 {"file",            required_argument,      0,   'f'},
                 {"restore",         no_argument,            0,   'r'},
                 {"delete",          no_argument,            0,   'd'},
@@ -890,6 +918,38 @@ start_program(int argc, char **argv, char *namespace_path)
                         if (strcmp(long_options[option_index].name,
                         "chunk_scheme") == 0) {
                                 set_namespace.chunk_scheme = optarg;
+                        }
+
+                        if(strcmp(long_options[option_index].name,
+                        "prime") == 0) {
+                                set_minhash_config.no_of_prime = atoi(optarg);
+                        }
+
+                        if(strcmp(long_options[option_index].name,
+                        "segments") == 0) {
+                                for (i = 0; optarg[i]; i++) {
+                                        if (!isdigit(optarg[i])) {
+                                                printf("Invalid count size\n");
+                                                ret = -1;
+                                                goto out;
+                                        }
+                                }
+                                set_minhash_config.seg_length = atoi(optarg);
+                        }
+                        if(strcmp(long_options[option_index].name,
+                        "min_hash_type") == 0) {
+                                set_minhash_config.minhash_type = optarg;
+                        }
+                        if(strcmp(long_options[option_index].name,
+                        "similarity") == 0) {
+                                for (i = 0; optarg[i]; i++) {
+                                        if (!isdigit(optarg[i])) {
+                                                printf("Invalid value for similarity\n");
+                                                ret = -1;
+                                                goto out;
+                                        }
+                                }
+                                set_minhash_config.per_of_similarity = atoi(optarg);
                         }
                         if (strcmp(long_options[option_index].name,
                         "chunk_size") == 0) {
@@ -954,6 +1014,15 @@ start_program(int argc, char **argv, char *namespace_path)
                                 goto out;
                         }
                         flag = delete_file;
+                        break;
+
+                case 'm':
+                        if (flag != -1) {
+                                printf("Trying to use more than one operation :"
+                                "Try $>yadl --help for more information\n");
+                                goto out;
+                        }
+                        flag = minhash;
                         break;
 
                 case 'r':
@@ -1036,6 +1105,29 @@ start_program(int argc, char **argv, char *namespace_path)
                         }
                         break;
                 }
+        case minhash:
+                if (strcmp(set_minhash_config.minhash_type, "xor") == 0) {
+                        if(set_minhash_config.no_of_prime <= 0) {
+                                printf("Invalid prime range\n");
+                                goto out;
+                        } 
+                }else if(strcmp(set_minhash_config.minhash_type, "default") != 0) {
+                                printf("Invalid type\n");
+                                goto out;
+                }
+                if(set_minhash_config.seg_length < 0) {
+                        printf("Invalid number of segments\n");
+                        goto out;
+                }
+                if(set_minhash_config.per_of_similarity < 0) {
+                        printf("Invalid number of similarity\n");
+                        goto out;
+                }
+                ret = file_operation(flag, file_path, namespace_path,
+                        set_namespace, set_minhash_config);
+                if (ret == -1)
+                        goto out;
+                break;
         case dedup:
         case restore:
         case list:
@@ -1047,7 +1139,7 @@ start_program(int argc, char **argv, char *namespace_path)
                 }
         case reset:
                 ret = file_operation(flag, file_path, namespace_path,
-                        set_namespace);
+                        set_namespace, set_minhash_config);
                 if (ret == -1)
                         goto out;
                 break;
