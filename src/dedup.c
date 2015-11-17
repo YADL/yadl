@@ -1,5 +1,4 @@
 #include "dedup.h"
-#include "hash_db.h"
 #include "clean_buff.h"
 #include "main.h"
 #include "Rabin_Karp.h"
