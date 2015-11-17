@@ -169,7 +169,8 @@ Input:
 Output:
         int ret           : -1 on failure and 0 on success
 */
-int similarity_of_minhash(MIN_HASH min_hash[20], int per_of_similarity)
+int similarity_of_minhash(MIN_HASH min_hash[20], int *per_of_similarity,
+char **high_similarity_seg, int *high_seg_len)
 {
         float per;
         int union_count,intr_count,f=0;
@@ -182,6 +183,7 @@ int similarity_of_minhash(MIN_HASH min_hash[20], int per_of_similarity)
         int ret                         =         -1;
         int i                           =          0;
         int j                           =          0;
+        int high_similarity             =         -1;
         const char *key;
         char *seg_key                   =       NULL;
         size_t key_len;
@@ -219,16 +221,53 @@ int similarity_of_minhash(MIN_HASH min_hash[20], int per_of_similarity)
                         }
                         f=0;
                 }
-                per = (float)intr_count/union_count;
-                printf("\nSimilarity  : %.0f\n", per*100);
+                per = ((float)intr_count/union_count)*100;
+                if(per > high_similarity) {
+                        high_similarity = per;
+                        *high_similarity_seg = (char *)malloc(strlen(seg_key));
+                        memcpy( *high_similarity_seg, seg_key, strlen(seg_key)+1);
+                        *high_seg_len = strlen(seg_key);
+                }
                 intr_count = 0;
                 union_count = 0;
                 clean_buff(&seg_key);
                 leveldb_iter_next(multi);
         }while(leveldb_iter_valid(multi));
+        *per_of_similarity = high_similarity;
         ret = 0;
 out:
         leveldb_iter_destroy(multi);
         leveldb_close(db);
+        return ret;
+}
+
+int last_seg() {
+
+        leveldb_t *db                   =       NULL;
+        leveldb_options_t *option       =       NULL;
+        leveldb_readoptions_t *roptions =       NULL;
+        char *read                      =       NULL;
+        size_t read_len                 =          0;
+        char *ret_value                 =       NULL;
+        int ret                         =         -1;
+
+        if( opendir("db") == NULL )
+                goto out;
+        option = leveldb_options_create();
+        leveldb_options_set_create_if_missing(option, 1);
+        db = leveldb_open(option, "db", &ret_value);
+        if (ret_value != NULL) {
+                goto out;
+        }
+        clean_buff(&ret_value);
+        roptions = leveldb_readoptions_create();
+        read = leveldb_get(db, roptions, "Count", 5, &read_len, &ret_value);
+        if (ret_value != NULL) {
+                goto out;
+        }
+        leveldb_close(db);
+        ret = atoi(read);
+
+out:
         return ret;
 }

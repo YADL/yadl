@@ -4,6 +4,7 @@
 #include "hash.h"
 #include "restore.h"
 #include "stub.h"
+#include "minhash_restore.h"
 
 
 /*Function to to give correct instruction to use the various information.
@@ -67,6 +68,8 @@ print_usage (FILE *stream, int exit_code)
                 "-f/--file <file path> [--prime <Range of prime number>]\n"
                 "\nRestore file:\n"
                 "$> yadl --restore/-r -n <namespace_name> --file/-f <file_path>\n"
+                "\nMinhash Restore file:\n"
+                "$> yadl --min_hash_restore --file/-f <file_path>\n"
                 "\nDelete file:\n"
                 "$> yadl --delete/-d -n <namespace_name> --file/-f <file_path>\n"
                 "\nList files in namespace:\n"
@@ -713,8 +716,12 @@ namespace_dtl set_namespace, minhash_config minhash_config_dtl)
         }
 
         if (set_namespace.namespace_name == NULL) {
-                printf("Namespace not specified");
-                goto out;
+                if(flag == minhash) {
+                        set_namespace.namespace_name = "default";
+                } else {
+                        printf("Namespace not specified");
+                        goto out;
+                }
         }
 
         sprintf(namespace_filename, "%s/%s.yadl", namespace_path,
@@ -768,12 +775,17 @@ namespace_dtl set_namespace, minhash_config minhash_config_dtl)
                         goto out;
                 break;
         case minhash:
+                if(strcmp(set_namespace.namespace_name, "default") != 0) {
+                        printf("Invalid number of arguments\n"
+                        "Try $>yadl --help for more information\n");
+                        goto out;
+                }
                 if(filename == NULL) {
                         printf("File name requried :"
                         "Try $>yadl --help for more information\n");
                         goto out;
                 }
-                ret = min_hash(filename, minhash_config_dtl);
+                ret = min_hash(get_namespace, filename, minhash_config_dtl);
                 if(ret < 0)
                         goto out;
                 break;
@@ -886,6 +898,7 @@ start_program(int argc, char **argv, char *namespace_path)
                 {"desc",            required_argument,      0,   0 },
                 {"dedup",           no_argument,            0,   'b'},
                 {"min_hash",        no_argument,            0,   'm'},
+                {"min_hash_restore", no_argument,            0,     0},
                 {"prime",           required_argument,      0,     0},
                 {"segments",        required_argument,      0,     0},
                 {"min_hash_type",   required_argument,      0,     0},
@@ -941,6 +954,10 @@ start_program(int argc, char **argv, char *namespace_path)
                                 set_minhash_config.minhash_type = optarg;
                         }
                         if(strcmp(long_options[option_index].name,
+                        "min_hash_restore") == 0) {
+                                flag = mrestore;
+                        }
+                        if(strcmp(long_options[option_index].name,
                         "similarity") == 0) {
                                 for (i = 0; optarg[i]; i++) {
                                         if (!isdigit(optarg[i])) {
@@ -949,7 +966,7 @@ start_program(int argc, char **argv, char *namespace_path)
                                                 goto out;
                                         }
                                 }
-                                set_minhash_config.per_of_similarity = atoi(optarg);
+                                set_minhash_config.threshold_similarity = atoi(optarg);
                         }
                         if (strcmp(long_options[option_index].name,
                         "chunk_size") == 0) {
@@ -1097,14 +1114,6 @@ start_program(int argc, char **argv, char *namespace_path)
                 if (ret == -1)
                         goto out;
                 break;
-        case delete_file:
-                if (file_path == NULL) {
-                        ret = delete_namespace(namespace_path, set_namespace);
-                        if (ret < 0) {
-                                goto out;
-                        }
-                        break;
-                }
         case minhash:
                 if (strcmp(set_minhash_config.minhash_type, "xor") == 0) {
                         if(set_minhash_config.no_of_prime <= 0) {
@@ -1119,7 +1128,7 @@ start_program(int argc, char **argv, char *namespace_path)
                         printf("Invalid number of segments\n");
                         goto out;
                 }
-                if(set_minhash_config.per_of_similarity < 0) {
+                if(set_minhash_config.threshold_similarity < 0) {
                         printf("Invalid number of similarity\n");
                         goto out;
                 }
@@ -1128,6 +1137,14 @@ start_program(int argc, char **argv, char *namespace_path)
                 if (ret == -1)
                         goto out;
                 break;
+        case delete_file:
+                if (file_path == NULL) {
+                        ret = delete_namespace(namespace_path, set_namespace);
+                        if (ret < 0) {
+                                goto out;
+                        }
+                        break;
+                }
         case dedup:
         case restore:
         case list:
@@ -1145,6 +1162,16 @@ start_program(int argc, char **argv, char *namespace_path)
                 break;
         case info:
                 ret = namespace_info(namespace_path, set_namespace);
+                if (ret == -1)
+                        goto out;
+                break;
+        case mrestore:
+                if (file_path == NULL) {
+                        printf("Specify file name:"
+                                "Try $>yadl --help for more information\n");
+                        goto out;
+                }
+                ret = minhash_restore(file_path);
                 if (ret == -1)
                         goto out;
                 break;

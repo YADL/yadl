@@ -209,13 +209,16 @@ get_variable_chunk (int fd, int *ret, int *size, int *chunk_flag, int *chunk_len
                                 goto out;
                         }
                         *ret = read (fd, buffer, buffer_length);
-                        if (*ret <= 0) {
+                        if (*ret < 0) {
+                                printf("%d\t%s",*ret, strerror(errno));
                                 fprintf (stderr, "Reading failed\n");
                                 *ret     = -1;
                                 goto out;
                         }
                         if (remaining_length == 0 && buffer_length <= N) {
                                 *size = 0;
+                                *chunk_flag   = 1;
+                                *chunk_length = buffer_length;
                                 return buffer;
                         }
 

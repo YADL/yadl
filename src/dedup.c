@@ -1,4 +1,5 @@
 #include "dedup.h"
+#include "hash_db.h"
 #include "clean_buff.h"
 #include "main.h"
 #include "Rabin_Karp.h"
@@ -220,7 +221,7 @@ get_hash(int hash_type, char **hash, int *h_length, vector_ptr list)
         int ret         =       -1;
         char *buf       =       NULL;
         char *buff      =       NULL;
-	DIGEST *digest  =     NULL;
+        DIGEST *digest  =     NULL;
 
         switch (hash_type) {
         case 0:
@@ -301,8 +302,3 @@ out:
         return ret;
 
 }
-
-
-
-
-

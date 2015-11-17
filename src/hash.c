@@ -13,9 +13,9 @@ init_hash_store(char *path)
         int ret         =       -1;
         DIR *dp = NULL;
         char filename[1024], hash_path[1024];
-	 
-	strcpy(hash_path,path);
-	sprintf(hash_path, "%s/hashs", hash_path);
+
+        strcpy(hash_path,path);
+        sprintf(hash_path, "%s/hashs", hash_path);
 
         dp = opendir(hash_path);
         if (NULL == dp) {
@@ -25,7 +25,7 @@ init_hash_store(char *path)
                         goto out;
                 }
         }
-	sprintf (filename,"%s/filehashDedup.txt",hash_path);
+        sprintf (filename,"%s/filehashDedup.txt",hash_path);
         fd_hash = open(filename, O_APPEND|O_CREAT|O_RDWR,
                 S_IRUSR|S_IWUSR);
         if (fd_hash == -1) {

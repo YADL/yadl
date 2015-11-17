@@ -2,20 +2,20 @@
 
 # Setup libyadl sources here
 lib_LTLIBRARIES = libyadl.la
-libyadl_la_SOURCES = dedup.c Restore_file.c \
+libyadl_la_SOURCES = dedup.c Restore_file.c minhash_stub.c \
 					 hash.c block.c stub.c clean_buff.c \
 					 catalog.c md5.c sha1.c Rabin_Karp.c \
 					vector.c object_store.c namespace.c \
-					ldb.c parsing.c min_hash.c
+					ldb.c parsing.c min_hash.c minhash_restore.c
 
 libyadl_la_LDFLAGS = -lssl -lcrypto -lleveldb
 
-noinst_HEADERS = block.h catalog.h clean_buff.h \
+noinst_HEADERS = block.h catalog.h clean_buff.h minhash_stub.h \
 				 config.h dedup.h \
 				 hash.h main.h md5.h restore.h \
 				 sha1.h stub.h Rabin_Karp.h \
 				 vector.h object_store.h namespace.h \
-				ldb.h parsing.h min_hash.h
+				ldb.h parsing.h min_hash.h minhash_restore.h
 
 # Create a program called 'dedup' but do not install it
 bin_PROGRAMS = yadl_dedup

@@ -44,4 +44,6 @@ Input:
 Output:
         int ret           : -1 on failure and 0 on success
 */
-int similarity_of_minhash(MIN_HASH min_hash[20], int per_of_similarity);
+int similarity_of_minhash(MIN_HASH min_hash[20], int *per_of_similarity, char **high_similarity_seg, int *high_seg_len);
+
+int last_seg();

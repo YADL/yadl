@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include "min_hash.h"
 
-enum OPTIONS {create, edit, delete_file, dedup, restore, info, list, reset, minhash};
+enum OPTIONS {create, edit, delete_file, dedup, restore, info, list, reset, minhash, mrestore};
 
 struct namespace_struct
 {

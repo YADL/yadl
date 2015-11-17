@@ -106,7 +106,7 @@ char
         char *buffer = NULL;
         struct stat st;
 
-	strcpy(path, store_path);
+        strcpy(path, store_path);
         sprintf(path, "%s/store_block/blocks/%c%c", path, hash[0], hash[1]);
         dp1 = opendir(path);
         if (NULL == dp1) {
