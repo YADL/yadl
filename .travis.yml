@@ -13,5 +13,6 @@ before_install:
     - cd include
     - sudo cp -R leveldb /usr/local/include
     - sudo ldconfig
+    - cd
 script:
     - ./autogen.sh && ./configure && make check
