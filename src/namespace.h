@@ -8,8 +8,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "min_hash.h"
 
-enum OPTIONS {create, edit, delete_file, dedup, restore, info, list, reset};
+enum OPTIONS {create, edit, delete_file, dedup, restore, info, list, reset, minhash, mrestore};
 
 struct namespace_struct
 {
@@ -67,7 +68,8 @@ Input:
 Output:
         int : Return 0 on success -1 on failure.
 */
-int file_operation(enum OPTIONS flag, char *filename, char *namespace_path, namespace_dtl set_namespace);
+int file_operation(enum OPTIONS flag, char *filename, char *namespace_path,
+namespace_dtl set_namespace, minhash_config minhash_config_dtl);
 
 /*@description: Function to create the namespace with given arguments.
 Input:

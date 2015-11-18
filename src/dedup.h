@@ -27,6 +27,8 @@
 #endif
 #define int_size sizeof(int)
 
+typedef unsigned char DIGEST;
+
 /*@description:Function to get hash of a particular block.
 @in: vector_ptr list-block contents strored in vector,int length-length of buffer,
         int hash_type-type of hash(sha1 or md5)
@@ -95,7 +97,7 @@ int  searchstubhash(int  st1,int b_offset,int e_offset);
 int length-length of block
 @out: char*-returns hash of block using md5
 @return: hash */
-char* str2md5(vector_ptr list);
+DIGEST *str2md5(vector_ptr list);
 
 /*@description:Function to create hash using sha1.
 @in: vector_ptr list-Vector to store block for which the hash is generated,

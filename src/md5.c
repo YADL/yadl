@@ -1,16 +1,15 @@
 #include "md5.h"
+#include "vector.h"
 
 /*Function to implement md5.
-Input:vector_ptr
-Output:char*
+Input:char *buffer
+Output:DIGEST
 */
-char *str2md5(vector_ptr list)
+DIGEST *str2md5(vector_ptr list)
 {
 
-        int n;
         MD5_CTX c;
-        unsigned char digest[16];
-        char *out = (char *)calloc(1, 33);
+        DIGEST *digest = (DIGEST *)calloc(1, 16);
         vector_ptr temp_node;
 
         if (list != NULL) {
@@ -23,12 +22,7 @@ char *str2md5(vector_ptr list)
                 } while (temp_node != NULL);
 
                 MD5_Final(digest, &c);
-
-                for (n = 0; n < 16; ++n) {
-                        snprintf(&(out[n*2]), 16*2, "%02x",
-                                (unsigned int)digest[n]);
-                }
         }
-        return out;
+        return digest;
 
 }
